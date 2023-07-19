@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang = "en">
 
-      <script src = "http://d3js.ord/d3.v5.min.js"></script>
+    <script src = "http://d3js.ord/d3.v5.min.js"></script>
+    <style> circle {fill: lightblue; stroke: black;}</style>
 
 
    <body onload="init()">
@@ -20,7 +21,7 @@ var y = d3.scaleLog()
             .range([200,0])
 
 
-const data = await d3.csv('https://flunky.github.io/cars2017.csv')
+const data = await d3.csv('https://melindatsay.github.io/cars2017.csv')
 
 d3.select("svg")
   .append("g")
