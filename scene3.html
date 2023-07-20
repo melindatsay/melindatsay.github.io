@@ -29,7 +29,7 @@
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
           .append("g")
-          .attr("transform", "translate(margin.left,margin.top)");
+          .attr("transform", "translate(50,50)");
 
         // var x = d3.scaleLog().base(10).domain([10, 150]).range([0, 200]);
         var x = d3
@@ -47,7 +47,7 @@
 
         svg
           .append("g")
-          //   .attr("transform", "translate(50,50)")
+          // .attr("transform", "translate(50,50)")
           .call(
             d3.axisLeft(y)
             //   .tickValues([10, 20, 50, 100])
@@ -65,7 +65,7 @@
         console.log(sumLoanAmount);
         svg
           .append("g")
-          .attr("transform", "translate(0,height)")
+          .attr("transform", "translate(0,700)")
           .call(
             d3.axisBottom(x)
             //   .tickValues([10, 20, 50, 100])
