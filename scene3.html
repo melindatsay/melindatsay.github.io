@@ -3,7 +3,7 @@
   <script src="https://d3js.org/d3.v5.min.js"></script>
   <style>
     circle {
-      fill: red;
+      fill: purple;
       stroke: black;
     }
   </style>
@@ -14,7 +14,7 @@
     <form action="/scene2.html">
       <button type="submit">Scene 2</button>
     </form>
-    <svg id="scatter3"></svg>
+    <div id="scatter3"></div>
     <script>
       async function init() {
         var x = d3.scaleLog().base(10).domain([10, 150]).range([0, 200]);
