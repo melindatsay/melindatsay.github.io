@@ -14,58 +14,74 @@
     <form action="/scene2.html">
       <button type="submit">Scene 2</button>
     </form>
-    <div id="scatter3"></div>
+    <div id="bar3"></div>
     <script>
       async function init() {
-        var x = d3.scaleLog().base(10).domain([10, 150]).range([0, 200]);
-
-        var y = d3.scaleLog().base(10).domain([10, 150]).range([200, 0]);
-
-        const data = await d3.csv("https://melindatsay.github.io/cars2017.csv");
+        const data = await d3.csv("https://melindatsay.github.io/ppp_data.csv");
+        var margin = { top: 30, right: 30, bottom: 70, left: 60 },
+          width = 460 - margin.left - margin.right,
+          height = 400 - margin.top - margin.bottom;
 
         // Append SVG Object to the Page
         const svg = d3
-          .select("#scatter3")
+          .select("#bar3")
           .append("svg")
-          .attr("width", 300)
-          .attr("height", 300)
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
           .append("g")
-          .attr("transform", "translate(50,50)");
+          .attr("transform", "translate(margin.left,margin.top)");
+
+        // var x = d3.scaleLog().base(10).domain([10, 150]).range([0, 200]);
+        var x = d3
+          .scaleBand()
+          .range([0, width])
+          .domain(
+            data.map(function (d) {
+              return d.NAICSCode_2_sector;
+            })
+          )
+          .padding(0.2);
+
+        // var y = d3.scaleLog().base(10).domain([10, 150]).range([200, 0]);
+        var y = d3.scaleLinear().domain([0, 13000]).range([height, 0]);
 
         svg
           .append("g")
           //   .attr("transform", "translate(50,50)")
           .call(
-            d3
-              .axisLeft(y)
-              .tickValues([10, 20, 50, 100])
-              .tickFormat(d3.format("~s"))
+            d3.axisLeft(y)
+            //   .tickValues([10, 20, 50, 100])
+            //   .tickFormat(d3.format("~s"))
           );
 
         svg
           .append("g")
-          .attr("transform", "translate(0,200)")
+          .attr("transform", "translate(0,height)")
           .call(
-            d3
-              .axisBottom(x)
-              .tickValues([10, 20, 50, 100])
-              .tickFormat(d3.format("~s"))
-          );
+            d3.axisBottom(x)
+            //   .tickValues([10, 20, 50, 100])
+            //   .tickFormat(d3.format("~s"))
+          )
+          .selectAll("text")
+          .attr("transform", "translate(-10,0)rotate(-45)")
+          .style("text-anchor", "end");
 
         svg
-          .selectAll("circle")
+          .selectAll("mybar")
           .data(data)
           .enter()
-          .append("circle")
-          .attr("cx", function (d) {
-            return x(d.AverageCityMPG);
+          .append("rect")
+          .attr("x", function (d) {
+            return x(d.NAICSCode_2_sector);
           })
-          .attr("cy", function (d) {
-            return y(d.AverageHighwayMPG);
+          .attr("y", function (d) {
+            return y(d.LoanAmount);
           })
-          .attr("r", function (d) {
-            return 2 + parseInt(d.EngineCylinders);
-          });
+          .attr("width", x.bandwidth())
+          .attr("height", function (d) {
+            height - y(d.LoanAmount);
+          })
+          .attr("fill", "#69b3a2");
       }
     </script>
   </body>
