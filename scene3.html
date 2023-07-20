@@ -14,7 +14,7 @@
     <form action="/scene2.html">
       <button type="submit">Scene 2</button>
     </form>
-    <svg width="300" height="300"></svg>
+    <svg id="scatter3" style="width: 300px; height: 300px"></svg>
     <script>
       async function init() {
         var x = d3.scaleLog().base(10).domain([10, 150]).range([0, 200]);
@@ -23,7 +23,10 @@
 
         const data = await d3.csv("https://melindatsay.github.io/cars2017.csv");
 
-        d3.select("svg")
+        // Append SVG Object to the Page
+        const svg = d3
+          .select("#scatter3")
+          .append("svg")
           .append("g")
           .attr("transform", "translate(50,50)")
           .selectAll("circle")
@@ -40,7 +43,7 @@
             return 2 + parseInt(d.EngineCylinders);
           });
 
-        d3.select("svg")
+        svg
           .append("g")
           .attr("transform", "translate(50,50)")
           .call(
@@ -50,7 +53,7 @@
               .tickFormat(d3.format("~s"))
           );
 
-        d3.select("svg")
+        svg
           .append("g")
           .attr("transform", "translate(50,250)")
           .call(
