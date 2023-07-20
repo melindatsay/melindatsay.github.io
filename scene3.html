@@ -3,7 +3,7 @@
   <script src="https://d3js.org/d3.v5.min.js"></script>
   <style>
     circle {
-      fill: orange;
+      fill: red;
       stroke: black;
     }
   </style>
@@ -32,7 +32,7 @@
 
         svg
           .append("g")
-          .attr("transform", "translate(50,50)")
+          //   .attr("transform", "translate(50,50)")
           .call(
             d3
               .axisLeft(y)
@@ -42,7 +42,7 @@
 
         svg
           .append("g")
-          .attr("transform", "translate(50,250)")
+          //   .attr("transform", "translate(50,250)")
           .call(
             d3
               .axisBottom(x)
