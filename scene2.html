@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
   <script src="https://d3js.org/d3.v5.min.js"></script>
-  <style>
-    circle {
-      fill: lightblue;
-      stroke: black;
-    }
-  </style>
   <body onload="init()">
     <form action="/scene2.html">
       <button type="submit">Scene 2</button>
@@ -18,54 +12,57 @@
     <script>
       async function init() {
         const data = await d3.csv("https://melindatsay.github.io/ppp_data.csv");
-        const barHeight = 25;
+        const width = 928;
+        const height = 500;
         const marginTop = 30;
         const marginRight = 0;
-        const marginBottom = 10;
-        const marginLeft = 30;
-        const width = 928;
-        const height =
-          Math.ceil((data.length + 0.1) * barHeight) + marginTop + marginBottom;
-
+        const marginBottom = 30;
+        const marginLeft = 40;
         // Create the scales.
         const x = d3
-          .scaleLinear()
-          .domain([0, d3.max(data, (d) => d.LoanAmount)])
-          .range([marginLeft, width - marginRight]);
-
-        const y = d3
           .scaleBand()
           .domain(
-            d3.sort(data, (d) => -d.LoanAmount).map((d) => d.NAICSCode_2_sector)
-          )
-          .rangeRound([marginTop, height - marginBottom])
+            d3.groupSort(
+              data,
+              ([d]) => -d.LoanAmount,
+              (d) => d.NAICSCode_2_sector
+            )
+          ) // descending frequency
+          .range([marginLeft, width - marginRight])
           .padding(0.1);
+        const y = d3
+          .scaleLinear()
+          .domain([0, d3.max(data, (d) => d.LoanAmount)])
+          .range([height - marginBottom, marginTop]);
 
         d3.select("svg")
+          .attr("fill", "steelblue")
           .append("g")
           .attr("transform", "translate(50,50)")
           .selectAll("rect")
           .data(data)
           .enter()
           .append("rect")
-          .attr("x", x(0))
+          .attr("x", function (d) {
+            return x(d.NAICSCode_2_sector);
+          })
           .attr("y", function (d) {
-            return y(d.NAICSCode_2_sector);
+            return y(d.LoanAmount);
           })
-          .attr("width", function (d) {
-            return x(d.LoanAmount) - x(0);
+          .attr("height", function (d) {
+            return y(0) - y(d.frequency);
           })
-          .attr("height", y.bandwidth());
-
-        d3.select("svg")
-          .append("g")
-          .attr("transform", `translate(${marginLeft},0)`)
-          .call(d3.axisLeft(y).tickFormat((y) => (y * 100).toFixed()));
+          .attr("width", x.bandwidth());
 
         d3.select("svg")
           .append("g")
           .attr("transform", `translate(0,${height - marginBottom})`)
           .call(d3.axisBottom(x).tickSizeOuter(0));
+
+        d3.select("svg")
+          .append("g")
+          .attr("transform", `translate(${marginLeft},0)`)
+          .call(d3.axisLeft(y).tickFormat((y) => (y * 100).toFixed()));
       }
     </script>
   </body>
