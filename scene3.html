@@ -3,7 +3,7 @@
   <script src="https://d3js.org/d3.v5.min.js"></script>
   <style>
     circle {
-      fill: red;
+      fill: orange;
       stroke: black;
     }
   </style>
@@ -28,9 +28,9 @@
           .select("#scatter3")
           .append("svg")
           .append("g")
-          //   .attr("transform", "translate(50,50)")
           .attr("width", 300)
-          .attr("height", 300);
+          .attr("height", 300)
+          .attr("transform", "translate(50,50)");
 
         svg
           .append("g")
