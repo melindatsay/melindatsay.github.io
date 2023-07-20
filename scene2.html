@@ -1,69 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <script src="https://d3js.org/d3.v5.min.js"></script>
-  <body onload="init()">
-    <form action="/scene2.html">
-      <button type="submit">Scene 2</button>
-    </form>
-    <form action="/scene3.html">
-      <button type="submit">Scene 3</button>
-    </form>
-    <svg width="1500" height="1500"></svg>
+  <body>
+    <h2>D3.js Scatter-Plot</h2>
+
+    <svg id="myPlot" style="width: 500px; height: 500px"></svg>
+
     <script>
-      async function init() {
-        const data = await d3.csv("https://melindatsay.github.io/ppp_data.csv");
-        const width = 928;
-        const height = 500;
-        const marginTop = 30;
-        const marginRight = 0;
-        const marginBottom = 30;
-        const marginLeft = 40;
-        // Create the scales.
-        const x = d3
-          .scaleBand()
-          .domain(
-            d3.groupSort(
-              data,
-              ([d]) => -d.LoanAmount,
-              (d) => d.NAICSCode_2_sector
-            )
-          ) // descending frequency
-          .range([marginLeft, width - marginRight])
-          .padding(0.1);
-        const y = d3
-          .scaleLinear()
-          .domain([0, d3.max(data, (d) => d.LoanAmount)])
-          .range([height - marginBottom, marginTop]);
+      // Set Dimensions
+      const xSize = 500;
+      const ySize = 500;
+      const margin = 40;
+      const xMax = xSize - margin * 2;
+      const yMax = ySize - margin * 2;
 
-        d3.select("svg")
-          .attr("fill", "steelblue")
-          .append("g")
-          .attr("transform", "translate(50,50)")
-          .selectAll("rect")
-          .data(data)
-          .enter()
-          .append("rect")
-          .attr("x", function (d) {
-            return x(d.NAICSCode_2_sector);
-          })
-          .attr("y", function (d) {
-            return y(d.LoanAmount);
-          })
-          .attr("height", function (d) {
-            return y(0) - y(d.frequency);
-          })
-          .attr("width", x.bandwidth());
-
-        d3.select("svg")
-          .append("g")
-          .attr("transform", `translate(0,${height - marginBottom})`)
-          .call(d3.axisBottom(x).tickSizeOuter(0));
-
-        d3.select("svg")
-          .append("g")
-          .attr("transform", `translate(${marginLeft},0)`)
-          .call(d3.axisLeft(y).tickFormat((y) => (y * 100).toFixed()));
+      // Create Random Points
+      const numPoints = 100;
+      const data = [];
+      for (let i = 0; i < numPoints; i++) {
+        data.push([Math.random() * xMax, Math.random() * yMax]);
       }
+
+      // Append SVG Object to the Page
+      const svg = d3
+        .select("#myPlot")
+        .append("svg")
+        .append("g")
+        .attr("transform", "translate(" + margin + "," + margin + ")");
+
+      // X Axis
+      const x = d3.scaleLinear().domain([0, 500]).range([0, xMax]);
+
+      svg
+        .append("g")
+        .attr("transform", "translate(0," + yMax + ")")
+        .call(d3.axisBottom(x));
+
+      // Y Axis
+      const y = d3.scaleLinear().domain([0, 500]).range([yMax, 0]);
+
+      svg.append("g").call(d3.axisLeft(y));
+
+      // Dots
+      svg
+        .append("g")
+        .selectAll("dot")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("cx", function (d) {
+          return d[0];
+        })
+        .attr("cy", function (d) {
+          return d[1];
+        })
+        .attr("r", 3)
+        .style("fill", "Red");
     </script>
   </body>
 </html>
