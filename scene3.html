@@ -18,11 +18,24 @@
     <script>
       async function init() {
         const data = await d3.csv("https://melindatsay.github.io/ppp_data.csv");
+
+        // sum LoanAmount by sectors
+        const sumLoanAmount = data.reduce(
+          (a, { NAICSCode_2_sector, LoanAmount }) => (
+            (a[NAICSCode_2_sector] =
+              (a[NAICSCode_2_sector] || 0) + parseInt(LoanAmount)),
+            a
+          ),
+          {}
+        );
+        console.log(sumLoanAmount);
+
+        // set margin, svg width, svg height
         var margin = { top: 200, right: 200, bottom: 200, left: 200 },
           width = 1000 - margin.left - margin.right,
           height = 1000 - margin.top - margin.bottom;
 
-        // Append SVG Object to the Page
+        // Append SVG Object to div
         const svg = d3
           .select("#bar3")
           .append("svg")
@@ -32,6 +45,7 @@
           .attr("transform", "translate(50,50)");
 
         // var x = d3.scaleLog().base(10).domain([10, 150]).range([0, 200]);
+        // create x axis
         var x = d3
           .scaleBand()
           .range([0, width])
@@ -42,9 +56,11 @@
           )
           .padding(0.2);
 
+        // create y axis
         // var y = d3.scaleLog().base(10).domain([10, 150]).range([200, 0]);
         var y = d3.scaleLinear().domain([0, 20000]).range([height, 0]);
 
+        // add y axis
         svg
           .append("g")
           // .attr("transform", "translate(50,50)")
@@ -54,18 +70,10 @@
             //   .tickFormat(d3.format("~s"))
           );
 
-        const sumLoanAmount = data.reduce(
-          (a, { NAICSCode_2_sector, LoanAmount }) => (
-            (a[NAICSCode_2_sector] =
-              (a[NAICSCode_2_sector] || 0) + parseInt(LoanAmount)),
-            a
-          ),
-          {}
-        );
-        console.log(sumLoanAmount);
+        // add x axis
         svg
           .append("g")
-          .attr("transform", "translate(0,800)")
+          .attr("transform", "translate(0,600)")
           .call(
             d3.axisBottom(x)
             //   .tickValues([10, 20, 50, 100])
@@ -75,17 +83,29 @@
           .attr("transform", "translate(-10,0)rotate(-45)")
           .style("text-anchor", "end");
 
+        // add bars
         svg
           .selectAll("mybar")
-          .data(data)
+          .data(sumLoanAmount)
           .enter()
           .append("rect")
-          .attr("x", function (d) {
-            return x(d.NAICSCode_2_sector);
-          })
-          .attr("y", function (d) {
-            return y(d.LoanAmount);
-          })
+          //   .attr("x", function (d) {
+          //     return x(d.NAICSCode_2_sector);
+          //   })
+          .attr(
+            "x",
+            d.forEach((element) => x(element))
+          )
+          //   .attr("y", function (d) {
+          //     return y(d.LoanAmount);
+          //   })
+          .attr(
+            "y",
+            d.forEach((catgy, index) => {
+              console.log(d[index]);
+              y(d[index]);
+            })
+          )
           .attr("width", x.bandwidth())
           .attr("height", function (d) {
             height - y(d.LoanAmount);
