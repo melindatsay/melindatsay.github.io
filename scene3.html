@@ -30,10 +30,10 @@
         );
 
         console.log(sumLoanAmount);
-        console.log(data.NAICSCode_2_sector);
-        console.log(typeof data.NAICSCode_2_sector);
+        // console.log(data.NAICSCode_2_sector);
+        // console.log(typeof data.NAICSCode_2_sector);
         console.log(Object.keys(sumLoanAmount));
-        console.log(Math.max(...Object.values(sumLoanAmount)));
+        // console.log(Math.max(...Object.values(sumLoanAmount)));
 
         // set margin, svg width, svg height
         var margin = { top: 200, right: 200, bottom: 200, left: 200 },
@@ -100,13 +100,13 @@
           //   .attr("x", function (d) {
           //     return x(d.NAICSCode_2_sector);
           //   })
-          .attr("x", ...Object.keys(sumLoanAmount))
+          .attr("x", Object.keys(sumLoanAmount))
           //   .attr("y", function (d) {
           //     return y(d.LoanAmount);
           //   })
-          .attr("y", y(...Object.values(sumLoanAmount)))
+          .attr("y", y(Object.values(sumLoanAmount)))
           .attr("width", x.bandwidth())
-          .attr("height", height - y(...Object.values(sumLoanAmount)))
+          .attr("height", height - y(Object.values(sumLoanAmount)))
           .attr("fill", "#69b3a2");
       }
     </script>
