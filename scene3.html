@@ -94,22 +94,25 @@
           //   })
           .attr(
             "x",
-            d.forEach((element) => x(element))
+            sumLoanAmount.forEach((element) => x(element))
           )
           //   .attr("y", function (d) {
           //     return y(d.LoanAmount);
           //   })
           .attr(
             "y",
-            d.forEach((catgy, index) => {
+            sumLoanAmount.forEach((catgy, index) => {
               console.log(d[index]);
               y(d[index]);
             })
           )
           .attr("width", x.bandwidth())
-          .attr("height", function (d) {
-            height - y(d.LoanAmount);
-          })
+          .attr(
+            "height",
+            sumLoanAmount.forEach((catgy, index) => {
+              height - y(d[index]);
+            })
+          )
           .attr("fill", "#69b3a2");
       }
     </script>
