@@ -121,7 +121,7 @@
           })
           //   .attr("y", y(code_loan_array.LoanAmount))
           .attr("width", x.bandwidth())
-          .attr("height", height - parseInt(y(code_loan_array.LoanAmount)))
+          //   .attr("height", height - parseInt(y(code_loan_array.LoanAmount)))
           .attr("height", height - y(d.LoanAmount))
           .attr("fill", "red");
       }
