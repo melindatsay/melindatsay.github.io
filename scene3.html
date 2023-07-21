@@ -28,7 +28,8 @@
           ),
           {}
         );
-        console.log(typeof sumLoanAmount);
+        console.log(sumLoanAmount);
+        console.log(Object.values(sumLoanAmount));
 
         // set margin, svg width, svg height
         var margin = { top: 200, right: 200, bottom: 200, left: 200 },
@@ -92,20 +93,11 @@
           //   .attr("x", function (d) {
           //     return x(d.NAICSCode_2_sector);
           //   })
-          .attr(
-            "x",
-            sumLoanAmount.forEach((element) => x(element))
-          )
+          .attr("x", x(Object.keys(sumLoanAmount)))
           //   .attr("y", function (d) {
           //     return y(d.LoanAmount);
           //   })
-          .attr(
-            "y",
-            sumLoanAmount.forEach((catgy, index) => {
-              console.log(d[index]);
-              y(d[index]);
-            })
-          )
+          .attr("y", y(Object.values(sumLoanAmount)))
           .attr("width", x.bandwidth())
           .attr(
             "height",
