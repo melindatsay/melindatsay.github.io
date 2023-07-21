@@ -45,7 +45,8 @@
         // console.log(sumLoanAmount);
         // console.log(data.NAICSCode_2_sector);
         // console.log(typeof data.NAICSCode_2_sector);
-        console.log(code_loan_array);
+        console.log("happy");
+        console.log(code_loan_array.LoanAmount);
         // console.log(Object.entries(sumLoanAmount));
         // console.log(Math.max(...Object.values(sumLoanAmount)));
 
@@ -111,16 +112,17 @@
           .data(code_loan_array)
           .enter()
           .append("rect")
-          //   .attr("x", function (d) {
-          //     return x(d.NAICSCode_2_sector);
-          //   })
-          .attr("x", x(code_loan_array.NAICSCode_2_sector))
-          //   .attr("y", function (d) {
-          //     return y(d.LoanAmount);
-          //   })
-          .attr("y", y(code_loan_array.LoanAmount))
+          .attr("x", function (d) {
+            return x(d.NAICSCode_2_sector);
+          })
+          //   .attr("x", x(code_loan_array.NAICSCode_2_sector))
+          .attr("y", function (d) {
+            return y(d.LoanAmount);
+          })
+          //   .attr("y", y(code_loan_array.LoanAmount))
           .attr("width", x.bandwidth())
           .attr("height", height - parseInt(y(code_loan_array.LoanAmount)))
+          .attr("height", height - y(d.LoanAmount))
           .attr("fill", "red");
       }
     </script>
