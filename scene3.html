@@ -29,7 +29,7 @@
           {}
         );
         console.log(sumLoanAmount);
-        console.log(max(Object.values(sumLoanAmount)));
+        console.log(Math.max(Object.values(sumLoanAmount)));
 
         // set margin, svg width, svg height
         var margin = { top: 200, right: 200, bottom: 200, left: 200 },
@@ -61,7 +61,7 @@
         // var y = d3.scaleLog().base(10).domain([10, 150]).range([200, 0]);
         var y = d3
           .scaleLinear()
-          .domain([0, max(Object.values(sumLoanAmount))])
+          .domain([0, Math.max(Object.values(sumLoanAmount))])
           .range([height, 0]);
 
         // add y axis
