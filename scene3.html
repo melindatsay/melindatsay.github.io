@@ -45,7 +45,7 @@
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
           .append("g")
-          .attr("transform", "translate(50,50)");
+          .attr("transform", "translate(100,100)");
 
         // var x = d3.scaleLog().base(10).domain([10, 150]).range([0, 200]);
         // create x axis
@@ -98,11 +98,11 @@
           //   .attr("x", function (d) {
           //     return x(d.NAICSCode_2_sector);
           //   })
-          .attr("x", x(Object.keys(...sumLoanAmount)))
+          .attr("x", x(...Object.keys(sumLoanAmount)))
           //   .attr("y", function (d) {
           //     return y(d.LoanAmount);
           //   })
-          .attr("y", y(Object.values(...sumLoanAmount)))
+          .attr("y", y(...Object.values(sumLoanAmount)))
           .attr("width", x.bandwidth())
           .attr("height", height - y(...Object.values(sumLoanAmount)))
           .attr("fill", "#69b3a2");
