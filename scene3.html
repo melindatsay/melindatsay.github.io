@@ -29,10 +29,24 @@
           {}
         );
 
-        console.log(sumLoanAmount);
+        function convertData(data) {
+          var ret = [];
+          for (var prop in data) {
+            ret.push({
+              NAICSCode_2_sector: prop,
+              LoanAmount: data[prop],
+            });
+          }
+
+          return ret;
+        }
+
+        code_loan_array = convertData(sumLoanAmount);
+        // console.log(sumLoanAmount);
         // console.log(data.NAICSCode_2_sector);
         // console.log(typeof data.NAICSCode_2_sector);
-        console.log(Object.keys(sumLoanAmount));
+        console.log(code_loan_array);
+        console.log(Object.entries(sumLoanAmount));
         // console.log(Math.max(...Object.values(sumLoanAmount)));
 
         // set margin, svg width, svg height
@@ -94,20 +108,20 @@
         // add bars
         svg
           .selectAll("mybar")
-          .data(sumLoanAmount)
+          .data(code_loan_array)
           .enter()
           .append("rect")
           //   .attr("x", function (d) {
           //     return x(d.NAICSCode_2_sector);
           //   })
-          .attr("x", Object.keys(sumLoanAmount))
+          .attr("x", x(code_loan_array.NAICSCode_2_sector))
           //   .attr("y", function (d) {
           //     return y(d.LoanAmount);
           //   })
-          .attr("y", y(Object.values(sumLoanAmount)))
+          .attr("y", y(code_loan_array.LoanAmount))
           .attr("width", x.bandwidth())
-          .attr("height", height - y(Object.values(sumLoanAmount)))
-          .attr("fill", "#69b3a2");
+          .attr("height", height - y(code_loan_array.LoanAmount))
+          .attr("fill", red);
       }
     </script>
   </body>
