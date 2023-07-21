@@ -28,9 +28,10 @@
           ),
           {}
         );
+        console.log(data);
         console.log(sumLoanAmount);
         console.log(Object.values(sumLoanAmount));
-        console.log(Math.max(Object.values(sumLoanAmount)));
+        console.log(Math.max(...Object.values(sumLoanAmount)));
 
         // set margin, svg width, svg height
         var margin = { top: 200, right: 200, bottom: 200, left: 200 },
@@ -62,7 +63,7 @@
         // var y = d3.scaleLog().base(10).domain([10, 150]).range([200, 0]);
         var y = d3
           .scaleLinear()
-          .domain([0, Math.max(Object.values(sumLoanAmount))])
+          .domain([0, Math.max(...Object.values(sumLoanAmount))])
           .range([height, 0]);
 
         // add y axis
@@ -97,13 +98,13 @@
           //   .attr("x", function (d) {
           //     return x(d.NAICSCode_2_sector);
           //   })
-          .attr("x", x(Object.keys(sumLoanAmount)))
+          .attr("x", x(Object.keys(...sumLoanAmount)))
           //   .attr("y", function (d) {
           //     return y(d.LoanAmount);
           //   })
-          .attr("y", y(Object.values(sumLoanAmount)))
+          .attr("y", y(Object.values(...sumLoanAmount)))
           .attr("width", x.bandwidth())
-          .attr("height", height - y(Object.values(sumLoanAmount)))
+          .attr("height", height - y(...Object.values(sumLoanAmount)))
           .attr("fill", "#69b3a2");
       }
     </script>
