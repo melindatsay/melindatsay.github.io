@@ -42,11 +42,11 @@
         }
 
         code_loan_array = convertData(sumLoanAmount);
-        // console.log(sumLoanAmount);
+        console.log(sumLoanAmount);
         // console.log(data.NAICSCode_2_sector);
         // console.log(typeof data.NAICSCode_2_sector);
         console.log("happy");
-        console.log(code_loan_array.LoanAmount);
+        console.log(code_loan_array);
         // console.log(Object.entries(sumLoanAmount));
         // console.log(Math.max(...Object.values(sumLoanAmount)));
 
@@ -122,7 +122,9 @@
           //   .attr("y", y(code_loan_array.LoanAmount))
           .attr("width", x.bandwidth())
           //   .attr("height", height - parseInt(y(code_loan_array.LoanAmount)))
-          .attr("height", height - y(d.LoanAmount))
+          .attr("height", function (d) {
+            height - y(d.LoanAmount);
+          })
           .attr("fill", "red");
       }
     </script>

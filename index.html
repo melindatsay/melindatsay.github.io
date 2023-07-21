@@ -1,64 +1,208 @@
 <!DOCTYPE html>
 <html lang="en">
   <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
+
   <style>
     circle {
       fill: lightblue;
       stroke: black;
     }
+    h1,
+    h2,
+    h3 {
+      text-align: center;
+      color: #698db3;
+    }
+    #buttoncontainer {
+      text-align: center;
+    }
+    #svgp {
+      text-align: center;
+    }
+    p {
+      color: #698db3;
+      padding-left: 23%;
+      padding-right: 23%;
+    }
   </style>
   <body onload="init()">
-    <form action="/scene2.html">
-      <button type="submit">Scene 2</button>
-    </form>
-    <form action="/scene3.html">
-      <button type="submit">Scene 3</button>
-    </form>
-    <svg width="300" height="300"></svg>
+    <h1>2020 Hawaii Paycheck Protection Program (PPP) Loan Amount Trend</h1>
+    <h1>Scene 1: Loan Amount v.s. Jobs Reported</h1>
+
+    <div id="svgp">
+      <p>
+        The largest loan amount from each reported bracket is annotated with
+        Lender Bank and NAICS Code Sector Name. As a matter of fact, First
+        Hawaiian Bank approves such loan for the majority of the time.
+      </p>
+      <svg width="900" height="900"></svg>
+    </div>
+    <div id="buttoncontainer">
+      <form action="/scene2.html">
+        <button type="submit">Go to Scene 2</button>
+      </form>
+      <form action="/scene3.html">
+        <button type="submit">Go to Scene 3</button>
+      </form>
+    </div>
     <script>
       async function init() {
-        var x = d3.scaleLog().base(10).domain([10, 150]).range([0, 200]);
+        //   var x = d3.scaleLog().base(10).domain([10, 150]).range([0, 200]);
+        var x = d3.scaleLinear().domain([0, 600]).range([0, 500]);
 
-        var y = d3.scaleLog().base(10).domain([10, 150]).range([200, 0]);
+        //   var y = d3.scaleLog().base(10).domain([10, 150]).range([200, 0]);
+        var y = d3.scaleLinear().domain([0, 150000]).range([500, 0]);
 
-        const data = await d3.csv("https://melindatsay.github.io/cars2017.csv");
+        const data = await d3.csv("https://melindatsay.github.io/ppp_data.csv");
 
         d3.select("svg")
           .append("g")
-          .attr("transform", "translate(50,50)")
+          .attr("transform", "translate(150,150)")
           .selectAll("circle")
           .data(data)
           .enter()
           .append("circle")
           .attr("cx", function (d) {
-            return x(d.AverageCityMPG);
+            return x(d.JobsReported);
           })
           .attr("cy", function (d) {
-            return y(d.AverageHighwayMPG);
+            return y(d.LoanAmount);
           })
-          .attr("r", function (d) {
-            return 2 + parseInt(d.EngineCylinders);
-          });
+          .attr("r", 3);
 
         d3.select("svg")
           .append("g")
-          .attr("transform", "translate(50,50)")
+          .attr("transform", "translate(150,150)")
           .call(
-            d3
-              .axisLeft(y)
-              .tickValues([10, 20, 50, 100])
-              .tickFormat(d3.format("~s"))
-          );
+            d3.axisLeft(y)
+            //   .tickValues([10, 20, 50, 100])
+            //   .tickFormat(d3.format("~s"))
+          )
+          .append("text")
+          .attr("fill", "black")
+          .attr("transform", "translate(-50, 300)")
+          .text("Loan Amount ($)");
 
         d3.select("svg")
           .append("g")
-          .attr("transform", "translate(50,250)")
+          .attr("transform", "translate(150,650)")
           .call(
-            d3
-              .axisBottom(x)
-              .tickValues([10, 20, 50, 100])
-              .tickFormat(d3.format("~s"))
-          );
+            d3.axisBottom(x)
+            //   .tickValues([10, 20, 50, 100])
+            //   .tickFormat(d3.format("~s"))
+          )
+          .append("text")
+          .attr("fill", "black")
+          .attr("transform", "translate(230, 40)")
+          .text("Jobs Reported");
+
+        // Add annotation 17 to the chart
+        const anno_17 = [
+          {
+            note: {
+              label: "Loan amount $149,900 / 17 reported jobs",
+              title:
+                "First Hawaiian Bank | Professional, Scientific, and Technical Services",
+              align: "middle", // try right or left
+              wrap: 280, // try something smaller to see text split in several lines
+              padding: 5, // More = text lower
+            },
+            color: ["#699fb3"],
+            x: 165,
+            y: 144,
+            dy: -40,
+            dx: 120,
+          },
+        ];
+
+        const makeAnno_17 = d3.annotation().annotations(anno_17);
+        d3.select("svg").append("g").call(makeAnno_17);
+
+        // Add annotation 76 to the chart
+        const anno_76 = [
+          {
+            note: {
+              label: "Loan amount $149,100 / 76 reported jobs",
+              title:
+                "First Hawaiian Bank | Arts, Entertainment, and Recreation",
+              align: "middle", // try right or left
+              wrap: 280, // try something smaller to see text split in several lines
+              padding: 5, // More = text lower
+            },
+            color: ["#699fb3"],
+            x: 228,
+            y: 152,
+            dy: 25,
+            dx: 150,
+          },
+        ];
+
+        const makeAnno_76 = d3.annotation().annotations(anno_76);
+        d3.select("svg").append("g").call(makeAnno_76);
+
+        // Add annotation 129 to the chart
+        const anno_129 = [
+          {
+            note: {
+              label: "Loan amount $107,970 / 129 reported jobs",
+              title: "First Hawaiian Bank | Healthcare and Social Assistance",
+              align: "middle", // try right or left
+              wrap: 280, // try something smaller to see text split in several lines
+              padding: 5, // More = text lower
+            },
+            color: ["#699fb3"],
+            x: 267,
+            y: 290,
+            dy: 25,
+            dx: 150,
+          },
+        ];
+
+        const makeAnno_129 = d3.annotation().annotations(anno_129);
+        d3.select("svg").append("g").call(makeAnno_129);
+
+        // Add annotation 240 to the chart
+        const anno_240 = [
+          {
+            note: {
+              label: "Loan amount $55,900 / 240 reported jobs",
+              title: "First Hawaiian Bank | Construction",
+              align: "middle", // try right or left
+              wrap: 280, // try something smaller to see text split in several lines
+              padding: 5, // More = text lower
+            },
+            color: ["#699fb3"],
+            x: 360,
+            y: 400,
+            dy: 25,
+            dx: 150,
+          },
+        ];
+
+        const makeAnno_240 = d3.annotation().annotations(anno_240);
+        d3.select("svg").append("g").call(makeAnno_240);
+
+        // Add annotation 500 to the chart
+        const anno_500 = [
+          {
+            note: {
+              label: "Loan amount $49,900 / 500 reported jobs",
+              title: "American Savings Bank | Finance and Insurance",
+              align: "middle", // try right or left
+              wrap: 280, // try something smaller to see text split in several lines
+              padding: 5, // More = text lower
+            },
+            color: ["#69b3a2"],
+            x: 580,
+            y: 485,
+            dy: 25,
+            dx: 150,
+          },
+        ];
+
+        const makeAnno_500 = d3.annotation().annotations(anno_500);
+        d3.select("svg").append("g").call(makeAnno_500);
       }
     </script>
   </body>
