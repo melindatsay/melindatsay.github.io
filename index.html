@@ -22,13 +22,13 @@
     }
     p {
       color: #698db3;
-      padding-left: 23%;
-      padding-right: 23%;
+      padding-left: 32%;
+      padding-right: 32%;
     }
   </style>
   <body onload="init()">
     <h1>2020 Hawaii Paycheck Protection Program (PPP) Loan Amount Trend</h1>
-    <h1>Scene 1: Loan Amount v.s. Jobs Reported</h1>
+    <h2>Scene 1: Loan Amount v.s. Jobs Reported</h2>
 
     <div id="svgp">
       <p>
@@ -36,7 +36,7 @@
         Lender Bank and NAICS Code Sector Name. As a matter of fact, First
         Hawaiian Bank approves such loan for the majority of the time.
       </p>
-      <svg width="900" height="900"></svg>
+      <svg width="900" height="710"></svg>
     </div>
     <div id="buttoncontainer">
       <form action="/scene2.html">
@@ -81,7 +81,7 @@
           )
           .append("text")
           .attr("fill", "black")
-          .attr("transform", "translate(-50, 300)")
+          .attr("transform", "translate(-50, 260)")
           .text("Loan Amount ($)");
 
         d3.select("svg")
@@ -94,7 +94,7 @@
           )
           .append("text")
           .attr("fill", "black")
-          .attr("transform", "translate(230, 40)")
+          .attr("transform", "translate(250, 40)")
           .text("Jobs Reported");
 
         // Add annotation 17 to the chart
