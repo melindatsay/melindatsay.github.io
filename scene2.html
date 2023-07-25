@@ -3,6 +3,7 @@
   <script src="https://d3js.org/d3.v5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
   <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+  <script src="https://d3js.org/d3-array.v2.min.js"></script>
   <style>
     circle {
       fill: lightblue;
@@ -28,13 +29,14 @@
   </style>
   <body onload="init()">
     <h1>2020 Hawaii Paycheck Protection Program (PPP) Loan Amount Trend</h1>
-    <h2>Scene 2: Top 20 Lender v.s. Approved Loan Amount Across Time</h2>
+    <h2>Scene 2: Top 5 Lender v.s. Approved Loan Amount Across Time</h2>
 
     <div id="svgp">
       <p>
-        The largest loan amount from each reported bracket is annotated with
-        Lender Bank and NAICS Code Sector Name. As a matter of fact, First
-        Hawaiian Bank approves such loan for the majority of the time.
+        Within the top 20% Loan Amount bracket across time, most loan amount are
+        approved by Central Pacific Bank, First Hawaiian Bank and American
+        Savings. Most loan amount approved by Hawaiian National Bank are within
+        the bottom 50% bracket across time.
       </p>
       <div id="scatters2"></div>
     </div>
@@ -49,14 +51,39 @@
     <script>
       async function init() {
         const data = await d3.csv("https://melindatsay.github.io/ppp_data.csv");
+
+        // filter and select top N lenders
+        // group and roll-up
+
+        let LoanAmountByLenders = d3.rollup(
+          data,
+          (v) => d3.sum(v, (d) => d.LoanAmount),
+          (d) => d.Lender
+        );
+        const topN = 5;
+        let topNLoanAmountByLenders_array = Array.from(
+          LoanAmountByLenders,
+          ([name, value]) => ({ name, value })
+        )
+          .sort(function (x, y) {
+            return d3.descending(x.value, y.value);
+          })
+          .slice(0, topN);
+
+        let topNLenders = topNLoanAmountByLenders_array.map((a) => a.name);
+
+        topNdata = data.filter((entry) => topNLenders.includes(entry.Lender));
+        // console.log(topNLenders);
+        // console.log(topNdata);
+
         var parseDate = d3.timeParse("%Y-%m-%dT%H:%M:%SZ");
         // console.log(data[0].DateApproved);
-        data.forEach(function (part, index) {
-          data[index].DateApproved = parseDate(part.DateApproved);
-          data[index].LoanAmount = parseFloat(part.LoanAmount);
+        topNdata.forEach(function (part, index) {
+          topNdata[index].DateApproved = parseDate(part.DateApproved);
+          topNdata[index].LoanAmount = parseFloat(part.LoanAmount);
         });
 
-        data.sort(function (a, b) {
+        topNdata.sort(function (a, b) {
           return a.DateApproved - b.DateApproved;
         });
 
@@ -64,7 +91,7 @@
         // set the dimensions and margins of the graph
         var margin = { top: 10, right: 200, bottom: 100, left: 100 },
           width = 900 - margin.left - margin.right,
-          height = 700 - margin.top - margin.bottom;
+          height = 900 - margin.top - margin.bottom;
 
         // append the svg object to the body of the page
         var svg = d3
@@ -78,25 +105,7 @@
             "translate(" + margin.left + "," + margin.top + ")"
           );
 
-        // // group the data: one line per group
-        // var sumstat = d3
-        //   .nest() // nest function allows to group the calculation per level of a factor
-        //   .key(function (d) {
-        //     return d.Lender;
-        //   })
-        //   .entries(data);
-
-        // Add X axis
-        // console.log(
-        //   d3.extent(data, function (d) {
-        //     return d.DateApproved;
-        //   })
-        // );
-        sample = d3.extent(data, function (d) {
-          return d.DateApproved;
-        });
-        // console.log(typeof sample[0]);
-
+        // build and add x axis
         var x = d3
           .scaleTime()
           .domain(
@@ -114,7 +123,7 @@
           .attr("transform", "translate(-10,0)rotate(-45)")
           .style("text-anchor", "end");
 
-        // Add Y axis
+        // build and add Y axis
         var y = d3
           .scaleLinear()
           .domain([
@@ -126,28 +135,20 @@
           .range([height, 0]);
         svg.append("g").call(d3.axisLeft(y));
 
-        // var x = d3.scaleLinear().domain([0, 600]).range([0, 500]);
-
-        // var y = d3.scaleLinear().domain([0, 150000]).range([500, 0]);
-
         // color palette
-        var lender_list = data.map(function (d) {
-          return d.Lender;
-        }); // list of group names
-        let unique_lenders = [...new Set(lender_list)];
-        console.log(typeof unique_lenders);
-        console.log(unique_lenders);
-        var color = d3
-          .scaleOrdinal()
-          .domain(unique_lenders)
-          .range(d3.schemeSet3);
+        // var lender_list = data.map(function (d) {
+        //   return d.Lender;
+        // }); // list of group names
+        // let unique_lenders = [...new Set(lender_list)];
+
+        var color = d3.scaleOrdinal().domain(topNLenders).range(d3.schemeSet3);
         // console.log(data[0].LoanAmount);
 
         // Draw the dots
         svg
           .append("g")
           .selectAll("dot")
-          .data(data)
+          .data(topNdata)
           .enter()
           .append("circle")
           .attr("cx", function (d) {
@@ -165,10 +166,10 @@
         // Legend:Add one dot in the legend for each name.
         svg
           .selectAll("mydots")
-          .data(unique_lenders)
+          .data(topNLenders)
           .enter()
           .append("circle")
-          .attr("cx", 650)
+          .attr("cx", 620)
           .attr("cy", function (d, i) {
             return 0 + i * 25;
           }) // 100 is where the first dot appears. 25 is the distance between dots
@@ -180,10 +181,10 @@
         // Legend: Add one text next to the dot in the legend for each name.
         svg
           .selectAll("mylabels")
-          .data(unique_lenders)
+          .data(topNLenders)
           .enter()
           .append("text")
-          .attr("x", 660)
+          .attr("x", 630)
           .attr("y", function (d, i) {
             return 0 + i * 25;
           }) // 100 is where the first dot appears. 25 is the distance between dots

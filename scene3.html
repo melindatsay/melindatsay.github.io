@@ -1,131 +1,246 @@
 <!DOCTYPE html>
 <html lang="en">
   <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
+  <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+  <script src="https://d3js.org/d3-array.v2.min.js"></script>
   <style>
     circle {
-      fill: purple;
+      fill: lightblue;
       stroke: black;
+    }
+    h1,
+    h2,
+    h3 {
+      text-align: center;
+      color: #698db3;
+    }
+    #buttoncontainer {
+      text-align: center;
+    }
+    #svgp {
+      text-align: center;
+    }
+    p {
+      color: #698db3;
+      padding-left: 32%;
+      padding-right: 32%;
     }
   </style>
   <body onload="init()">
-    <form action="/index.html">
-      <button type="submit">Scene 1</button>
-    </form>
-    <form action="/scene2.html">
-      <button type="submit">Scene 2</button>
-    </form>
-    <div id="bar3"></div>
+    <h1>2020 Hawaii Paycheck Protection Program (PPP) Loan Amount Trend</h1>
+    <h2 id="h2-sub">Scene 3: Top 5 Lender v.s. NAICS Code Across Time</h2>
+
+    <div id="svgp">
+      <form action="" id="two-drop-submit">
+        <p>
+          Select Top N:
+          <select id="top-n-dropdown">
+            <option value="1">Top 1</option>
+            <option value="3">Top 2</option>
+            <option value="3">Top 3</option>
+            <option value="5">Top 5<code></code></option>
+            <option value="10">Top 10<code></code></option>
+          </select>
+        </p>
+        <p>
+          Select a Parameter for Y-axis:
+          <select id="y-axis-dropdown">
+            <option value="NAICSCode_2">NAICS Code</option>
+            <option value="JobsReported">Jobs Reported</option>
+            <option value="LoanAmount">Loan Amount<code></code></option>
+            <option value="Zip">Zip<code></code></option>
+          </select>
+        </p>
+        <button type="submit">Submit</button>
+      </form>
+
+      <p id="selected-dropdown"></p>
+      <div id="scatters2"></div>
+    </div>
+    <div id="buttoncontainer">
+      <form action="/index.html">
+        <button type="submit">Go to Scene 1</button>
+      </form>
+      <form action="/scene2.html">
+        <button type="submit">Go to Scene 2</button>
+      </form>
+    </div>
     <script>
       async function init() {
         const data = await d3.csv("https://melindatsay.github.io/ppp_data.csv");
+        two_drop_submit = document.getElementById("two-drop-submit");
 
-        // sum LoanAmount by sectors
-        const sumLoanAmount = data.reduce(
-          (a, { NAICSCode_2_sector, LoanAmount }) => (
-            (a[NAICSCode_2_sector] =
-              (a[NAICSCode_2_sector] || 0) + parseInt(LoanAmount)),
-            a
-          ),
-          {}
+        // catch dropdown values after submitting
+        two_drop_submit.addEventListener("submit", (e) => {
+          // prevent dropdown values changes after submitting
+          e.preventDefault();
+
+          // handle submit
+          // y-axis value
+          var y_value = document.getElementById("y-axis-dropdown").value;
+          console.log(y_value);
+
+          // y-axis text
+          var y_text =
+            document.getElementById("y-axis-dropdown").options[
+              document.getElementById("y-axis-dropdown").selectedIndex
+            ].innerHTML;
+          console.log(y_text);
+
+          //topN value
+          var topN = document.getElementById("top-n-dropdown").value;
+          console.log(topN);
+
+          //change Scene 3 h2 headline
+          document.getElementById("h2-sub").innerHTML =
+            "Scene 3: Top " + topN + " Lender v.s. " + y_text + " Across Time";
+        });
+
+        // filter and select top N lenders
+        // group and roll-up
+
+        let LoanAmountByLenders = d3.rollup(
+          data,
+          (v) => d3.sum(v, (d) => d.LoanAmount),
+          (d) => d.Lender
         );
+        const topN = 5;
+        let topNLoanAmountByLenders_array = Array.from(
+          LoanAmountByLenders,
+          ([name, value]) => ({ name, value })
+        )
+          .sort(function (x, y) {
+            return d3.descending(x.value, y.value);
+          })
+          .slice(0, topN);
 
-        function convertData(data) {
-          var ret = [];
-          for (var prop in data) {
-            ret.push({
-              NAICSCode_2_sector: prop,
-              LoanAmount: data[prop],
-            });
-          }
+        let topNLenders = topNLoanAmountByLenders_array.map((a) => a.name);
 
-          return ret;
-        }
+        topNdata = data.filter((entry) => topNLenders.includes(entry.Lender));
+        // console.log(topNLenders);
+        // console.log(topNdata);
 
-        code_loan_array = convertData(sumLoanAmount);
-        console.log(sumLoanAmount);
-        // console.log(data.NAICSCode_2_sector);
-        // console.log(typeof data.NAICSCode_2_sector);
-        console.log("happy");
-        console.log(code_loan_array);
-        // console.log(Object.entries(sumLoanAmount));
-        // console.log(Math.max(...Object.values(sumLoanAmount)));
+        var parseDate = d3.timeParse("%Y-%m-%dT%H:%M:%SZ");
+        // console.log(data[0].DateApproved);
+        topNdata.forEach(function (part, index) {
+          topNdata[index].DateApproved = parseDate(part.DateApproved);
+          topNdata[index].LoanAmount = parseFloat(part.LoanAmount);
+        });
 
-        // set margin, svg width, svg height
-        var margin = { top: 200, right: 200, bottom: 200, left: 200 },
-          width = 1000 - margin.left - margin.right,
-          height = 1000 - margin.top - margin.bottom;
+        topNdata.sort(function (a, b) {
+          return a.DateApproved - b.DateApproved;
+        });
 
-        // Append SVG Object to div
-        const svg = d3
-          .select("#bar3")
+        // console.log(data[0].DateApproved);
+        // set the dimensions and margins of the graph
+        var margin = { top: 10, right: 200, bottom: 100, left: 100 },
+          width = 900 - margin.left - margin.right,
+          height = 900 - margin.top - margin.bottom;
+
+        // append the svg object to the body of the page
+        var svg = d3
+          .select("#scatters2")
           .append("svg")
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
           .append("g")
-          .attr("transform", "translate(150,50)");
-
-        // var x = d3.scaleLog().base(10).domain([10, 150]).range([0, 200]);
-        // create x axis
-        var x = d3
-          .scaleBand()
-          .range([0, width])
-          .domain(
-            data.map(function (d) {
-              return d.NAICSCode_2_sector;
-            })
-          )
-          .padding(0.2);
-
-        // create y axis
-        // var y = d3.scaleLog().base(10).domain([10, 150]).range([200, 0]);
-        var y = d3
-          .scaleLinear()
-          .domain([0, Math.max(...Object.values(sumLoanAmount))])
-          .range([height, 0]);
-
-        // add y axis
-        svg
-          .append("g")
-          // .attr("transform", "translate(50,50)")
-          .call(
-            d3.axisLeft(y)
-            //   .tickValues([10, 20, 50, 100])
-            //   .tickFormat(d3.format("~s"))
+          .attr(
+            "transform",
+            "translate(" + margin.left + "," + margin.top + ")"
           );
 
-        // add x axis
+        // build and add x axis
+        var x = d3
+          .scaleTime()
+          .domain(
+            d3.extent(data, function (d) {
+              return d.DateApproved;
+            })
+          )
+          .range([0, width]);
+
         svg
           .append("g")
-          .attr("transform", "translate(0,600)")
-          .call(
-            d3.axisBottom(x)
-            //   .tickValues([10, 20, 50, 100])
-            //   .tickFormat(d3.format("~s"))
-          )
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x))
           .selectAll("text")
           .attr("transform", "translate(-10,0)rotate(-45)")
           .style("text-anchor", "end");
 
-        // add bars
+        // build and add Y axis
+        var y = d3
+          .scaleLinear()
+          .domain([
+            0,
+            d3.max(data, function (d) {
+              return d.LoanAmount;
+            }),
+          ])
+          .range([height, 0]);
+        svg.append("g").call(d3.axisLeft(y));
+
+        // color palette
+        // var lender_list = data.map(function (d) {
+        //   return d.Lender;
+        // }); // list of group names
+        // let unique_lenders = [...new Set(lender_list)];
+
+        var color = d3.scaleOrdinal().domain(topNLenders).range(d3.schemeSet3);
+        // console.log(data[0].LoanAmount);
+
+        // Draw the dots
         svg
-          .selectAll("mybar")
-          .data(code_loan_array)
+          .append("g")
+          .selectAll("dot")
+          .data(topNdata)
           .enter()
-          .append("rect")
-          .attr("x", function (d) {
-            return x(d.NAICSCode_2_sector);
+          .append("circle")
+          .attr("cx", function (d) {
+            // console.log(d.DateApproved);
+            return x(d.DateApproved);
           })
-          //   .attr("x", x(code_loan_array.NAICSCode_2_sector))
-          .attr("y", function (d) {
+          .attr("cy", function (d) {
             return y(d.LoanAmount);
           })
-          //   .attr("y", y(code_loan_array.LoanAmount))
-          .attr("width", x.bandwidth())
-          //   .attr("height", height - parseInt(y(code_loan_array.LoanAmount)))
-          .attr("height", function (d) {
-            height - y(d.LoanAmount);
+          .attr("r", 4)
+          .style("fill", function (d) {
+            return color(d.Lender);
+          });
+
+        // Legend:Add one dot in the legend for each name.
+        svg
+          .selectAll("mydots")
+          .data(topNLenders)
+          .enter()
+          .append("circle")
+          .attr("cx", 620)
+          .attr("cy", function (d, i) {
+            return 0 + i * 25;
+          }) // 100 is where the first dot appears. 25 is the distance between dots
+          .attr("r", 3)
+          .style("fill", function (d) {
+            return color(d);
+          });
+
+        // Legend: Add one text next to the dot in the legend for each name.
+        svg
+          .selectAll("mylabels")
+          .data(topNLenders)
+          .enter()
+          .append("text")
+          .attr("x", 630)
+          .attr("y", function (d, i) {
+            return 0 + i * 25;
+          }) // 100 is where the first dot appears. 25 is the distance between dots
+          .style("fill", function (d) {
+            return color(d);
           })
-          .attr("fill", "red");
+          .text(function (d) {
+            return d;
+          })
+          .attr("text-anchor", "left")
+          .style("alignment-baseline", "middle");
       }
     </script>
   </body>
