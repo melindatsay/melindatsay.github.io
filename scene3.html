@@ -9,26 +9,36 @@
       fill: lightblue;
       stroke: black;
     }
+
     h1,
     h2,
     h3 {
       text-align: center;
       color: #698db3;
     }
+    #scatters2{
+      text-align: center;
+    }
     #buttoncontainer {
       text-align: center;
     }
-    /* #svgp {
+    #svgp {
       text-align: center;
-    } */
+    }
     p {
       color: #698db3;
       /* padding-left: 32%;
       padding-right: 32%; */
+
     }
     .multiselect {
   width: 280px;
 }
+ #y-axis-dropdown{
+  width: 280px;
+  /* position: absolute; */
+
+ }
 
 .selectBox {
   position: relative;
@@ -59,14 +69,21 @@
 #checkboxes label:hover {
   background-color: #1e90ff;
 }
+#tooltip {
+    width: 170px;
+    height: 100px;
+    background-color: white;
+    border: 1px solid #969696;
+    position: absolute;
+}
   </style>
   <body onload="init()">
     <h1>2020 Hawaii Paycheck Protection Program (PPP) Loan Amount Trend</h1>
     <h2 id="h2-sub">Scene 3: Top 10 Lenders v.s. Loan Amount Across Time</h2>
 
-    <div id="svgp">
+    
       <form action="" id="two-drop-submit">
-         <p>Select one or more Lenders
+        <p>Select one or more Lenders
         <div class="multiselect">
             <div class="selectBox" id="selectBox" onclick="showCheckboxes()">
               <select>
@@ -119,12 +136,14 @@
           <option value="JobsReported">Jobs Reported</option>
           <option value="Zip">Zip</option>
         </select>
-      </p>
+        </p>
         <button type="submit">Submit</button>
       </form>
 
-      <p id="selected-dropdown"></p>
+      <!-- <p id="selected-dropdown"></p> -->
+      <div id="svgp">
       <div id="scatters2"></div>
+    </div>
     </div>
     <div id="buttoncontainer">
       <form action="/index.html">
@@ -175,9 +194,9 @@
         // console.log(data[0].DateApproved);
 
         // set the dimensions and margins of the graph
-        var margin = { top: 10, right: 200, bottom: 100, left: 100 },
-          width = 900 - margin.left - margin.right,
-          height = 900 - margin.top - margin.bottom;
+        var margin = { top: 10, right: 250, bottom: 100, left: 200 },
+          width = 1100 - margin.left - margin.right,
+          height = 800 - margin.top - margin.bottom;
 
         // append the svg object to the body of the page
         var svg = d3
@@ -207,7 +226,12 @@
           .call(d3.axisBottom(x))
           .selectAll("text")
           .attr("transform", "translate(-10,0)rotate(-45)")
-          .style("text-anchor", "end");
+          .style("text-anchor", "end")
+        svg
+          .append("text")
+          .attr("fill", "black")
+          .attr("transform", "translate(270, 750)")
+          .text("Date Approved");
 
         // build and add Y axis
         var y = d3
@@ -219,12 +243,21 @@
             }),
           ])
           .range([height, 0]);
-        svg.append("g").call(d3.axisLeft(y));
+        svg.append("g")
+           .call(d3.axisLeft(y))
+        svg
+           .append("text")
+           .attr("fill", "black")
+           .attr("transform", "translate(-150, 370)")
+           .text("Loan Amount ($)");
 
         // build color from topN lenders
         var color = d3.scaleOrdinal().domain(topNLenders).range(d3.schemeSet3);
         // console.log(data[0].LoanAmount);
 
+
+        //add tooltip
+        d3.select('body').append('div').attr('id', 'tooltip').attr('style', 'position: absolute; opacity: 0;');
         // Draw the dots
         svg
           .append("g")
@@ -242,7 +275,16 @@
           .attr("r", 4)
           .style("fill", function (d) {
             return color(d.Lender);
-          });
+          })
+          .on('mouseover', function(d) {
+           d3.select('#tooltip').transition().duration(200).style('opacity', 1).text("Loan Amount" + d.LoanAmount)
+          })
+          .on('mouseout', function() {
+          d3.select('#tooltip').style('opacity', 0)
+          })
+          .on('mousemove', function() {
+          d3.select('#tooltip').style('left', (d3.event.pageX+10) + 'px').style('top', (d3.event.pageY+10) + 'px')
+          })
 
         // Legend:Add one dot in the legend for each name.
         svg
@@ -250,7 +292,7 @@
           .data(topNLenders)
           .enter()
           .append("circle")
-          .attr("cx", 620)
+          .attr("cx", 680)
           .attr("cy", function (d, i) {
             return 0 + i * 25;
           }) // 100 is where the first dot appears. 25 is the distance between dots
@@ -265,7 +307,7 @@
           .data(topNLenders)
           .enter()
           .append("text")
-          .attr("x", 630)
+          .attr("x", 690)
           .attr("y", function (d, i) {
             return 0 + i * 25;
           }) // 100 is where the first dot appears. 25 is the distance between dots
@@ -278,14 +320,9 @@
           .attr("text-anchor", "left")
           .style("alignment-baseline", "middle");
 
-        // prevent dropdown values changes after submitting
-        // two_drop_submit = document.getElementById("two-drop-submit");
-        // two_drop_submit.addEventListener("submit", (e) => {
-        //   e.preventDefault();
-        // });
-        var expanded = false;
 
-        
+        // expand checkboxes
+        var expanded = false;
         document.getElementById("selectBox").onclick=function showCheckboxes() {
           var checkboxes = document.getElementById("checkboxes");
           if (!expanded) {
@@ -297,16 +334,15 @@
           }
         }
 
+
+
+
+
         // listen for checkboxes values
         // Select all checkboxes with the name 'settings' using querySelectorAll.
         var checkboxes = document.querySelectorAll("input[type=checkbox]");
         let checked_lenders = []
         // console.log(checkboxes)
-        /*
-        For IE11 support, replace arrow functions with normal functions and
-        use a polyfill for Array.forEach:
-        https://vanillajstoolkit.com/polyfills/arrayforeach/
-        */
 
         // Use Array.forEach to add an event listener to each checkbox.
         checkboxes.forEach(function(checkbox) {
@@ -483,7 +519,12 @@
               .range([height, 0]);
           }
 
-          svg.append("g").call(d3.axisLeft(y));
+          svg.append("g")
+             .call(d3.axisLeft(y))
+             .append("text")
+             .attr("fill", "black")
+             .attr("transform", "translate(-50, 400)")
+             .text(y_text);
 
           color = d3.scaleOrdinal().domain(topNLenders).range(d3.schemeSet3);
           console.log(data[0].DateApproved);
@@ -523,7 +564,7 @@
             .data(checked_lenders)
             .enter()
             .append("circle")
-            .attr("cx", 620)
+            .attr("cx", 680)
             .attr("cy", function (d, i) {
               return 0 + i * 25;
             }) // 100 is where the first dot appears. 25 is the distance between dots
@@ -538,7 +579,7 @@
             .data(checked_lenders)
             .enter()
             .append("text")
-            .attr("x", 630)
+            .attr("x", 690)
             .attr("y", function (d, i) {
               return 0 + i * 25;
             }) // 100 is where the first dot appears. 25 is the distance between dots
