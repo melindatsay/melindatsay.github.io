@@ -68,34 +68,8 @@
     </div>
     <script>
       async function init() {
-        const data = await d3.csv("https://melindatsay.github.io/ppp_data.csv");
-        // two_drop_submit = document.getElementById("two-drop-submit");
+        var data = await d3.csv("./ppp_data.csv");
 
-        // // catch dropdown values after submitting
-        // two_drop_submit.addEventListener("submit", (e) => {
-        //   // prevent dropdown values changes after submitting
-        //   e.preventDefault();
-
-        //   // handle submit
-        //   // y-axis value
-        //   var y_value = document.getElementById("y-axis-dropdown").value;
-        //   console.log(y_value);
-
-        //   // y-axis text
-        //   var y_text =
-        //     document.getElementById("y-axis-dropdown").options[
-        //       document.getElementById("y-axis-dropdown").selectedIndex
-        //     ].innerHTML;
-        //   console.log(y_text);
-
-        //   //topN value
-        //   var topN = document.getElementById("top-n-dropdown").value;
-        //   console.log(topN);
-
-        //   //change Scene 3 h2 headline
-        //   document.getElementById("h2-sub").innerHTML =
-        //     "Scene 3: Top " + topN + " Lender v.s. " + y_text + " Across Time";
-        // });
         // filter and select top N lenders
         // group and roll-up
         let LoanAmountByLenders = d3.rollup(
@@ -114,12 +88,9 @@
           .slice(0, +topN);
 
         let topNLenders = topNLoanAmountByLenders_array.map((a) => a.name);
-
+        // console.log(data);
         topNdata = data.filter((entry) => topNLenders.includes(entry.Lender));
-
-        // console.log(topNLenders);
         // console.log(topNdata);
-
         // parse and sort date for x-axis
         var parseDate = d3.timeParse("%Y-%m-%dT%H:%M:%SZ");
         // console.log(data[0].DateApproved);
@@ -131,7 +102,7 @@
         topNdata.sort(function (a, b) {
           return a.DateApproved - b.DateApproved;
         });
-
+        // console.log(topNdata);
         // console.log(data[0].DateApproved);
 
         // set the dimensions and margins of the graph
@@ -179,21 +150,15 @@
             }),
           ])
           .range([height, 0]);
-        svg.append("g").attr("class", "y axis").call(d3.axisLeft(y));
+        svg.append("g").call(d3.axisLeft(y));
 
-        // color palette
-        // var lender_list = data.map(function (d) {
-        //   return d.Lender;
-        // }); // list of group names
-        // let unique_lenders = [...new Set(lender_list)];
-
+        // build color from topN lenders
         var color = d3.scaleOrdinal().domain(topNLenders).range(d3.schemeSet3);
         // console.log(data[0].LoanAmount);
 
         // Draw the dots
         svg
           .append("g")
-          .attr("class", "scatter dots")
           .selectAll("dot")
           .data(topNdata)
           .enter()
@@ -245,13 +210,24 @@
           .style("alignment-baseline", "middle");
 
         // prevent dropdown values changes after submitting
-        two_drop_submit = document.getElementById("two-drop-submit");
-        two_drop_submit.addEventListener("submit", (e) => {
-          e.preventDefault();
+        // two_drop_submit = document.getElementById("two-drop-submit");
+        // two_drop_submit.addEventListener("submit", (e) => {
+        //   e.preventDefault();
+        // });
+        data = await d3.csv("./ppp_data.csv");
+        data.forEach(function (part, index) {
+          data[index].DateApproved = parseDate(part.DateApproved);
+          data[index].LoanAmount = parseFloat(part.LoanAmount);
+          data[index].NAICSCode_2 = parseFloat(part.NAICSCode_2);
+          data[index].JobsReported = parseInt(part.JobsReported);
+          data[index].Zip = parseInt(part.Zip);
         });
-
+        ////////////////////        UPDATE      ///////////////////////
+        ///////////////////////////////////////////////////////////////
         //update chart by two dropdown values
         d3.select("#two-drop-submit").on("submit", function () {
+          d3.event.preventDefault();
+          console.log(data[0].DateApproved);
           var y_value = document.getElementById("y-axis-dropdown").value;
           console.log(y_value);
           // y-axis text
@@ -259,61 +235,72 @@
             document.getElementById("y-axis-dropdown").options[
               document.getElementById("y-axis-dropdown").selectedIndex
             ].innerHTML;
-          console.log(y_text);
 
           //topN value
           topN = document.getElementById("top-n-dropdown").value;
           console.log(topN);
 
-          //change Scene 3 h2 headline
+          //update Scene 3 h2 headline
           document.getElementById("h2-sub").innerHTML =
             "Scene 3: Top " + topN + " Lender v.s. " + y_text + " Across Time";
 
           // filter and select top N lenders
           // group and roll-up
-          //   let LoanAmountByLenders = d3.rollup(
+          //   console.log(data);
+          //   LoanAmountByLenders = d3.rollup(
           //     data,
           //     (v) => d3.sum(v, (d) => d.LoanAmount),
           //     (d) => d.Lender
           //   );
           // var topN = 10;
-          let topNLoanAmountByLenders_array = Array.from(
+          console.log(data[0].DateApproved);
+          topNLoanAmountByLenders_array = Array.from(
             LoanAmountByLenders,
             ([name, value]) => ({ name, value })
           )
             .sort(function (x, y) {
               return d3.descending(x.value, y.value);
             })
-            .slice(0, +topN);
-
-          let topNLenders = topNLoanAmountByLenders_array.map((a) => a.name);
-
+            .slice(0, parseInt(topN));
+          topNLenders = topNLoanAmountByLenders_array.map((a) => a.name);
+          //   console.log(topNLenders);
+          console.log(data[0].DateApproved);
           topNdata = data.filter((entry) => topNLenders.includes(entry.Lender));
+          //   console.log(topNdata);
 
-          // console.log(topNLenders);
-          // console.log(topNdata);
+          //   console.log(topNLenders);
 
           // parse and sort date for x-axis
-          //   var parseDate = d3.timeParse("%Y-%m-%dT%H:%M:%SZ");
+          //   parseDate = d3.timeParse("%Y-%m-%dT%H:%M:%SZ");
           // console.log(data[0].DateApproved);
-          topNdata.forEach(function (part, index) {
-            topNdata[index].DateApproved = parseDate(part.DateApproved);
-            topNdata[index].LoanAmount = parseFloat(part.LoanAmount);
-          });
-
+          //   topNdata.forEach(function (part, index) {
+          //     topNdata[index].DateApproved = parseDate(part.DateApproved);
+          //     if (y_value == "LoanAmount") {
+          //       topNdata[index].LoanAmount = parseFloat(part.LoanAmount);
+          //     } else if (y_value == "NAICSCode_2") {
+          //       topNdata[index].NAICSCode_2 = parseFloat(part.NAICSCode_2);
+          //     } else if (y_value == "JobsReported") {
+          //       topNdata[index].JobsReported = parseInt(part.JobsReported);
+          //     } else {
+          //       topNdata[index].Zip = parseInt(part.Zip);
+          //     }
+          //   });
+          //   console.log(topNdata);
           topNdata.sort(function (a, b) {
             return a.DateApproved - b.DateApproved;
           });
+          //   console.log(topNdata);
+          //remove all subsets from svg
           svg.selectAll("*").remove();
 
-          // console.log(data[0].DateApproved);
+          console.log(data[0].DateApproved);
 
-          //   // set the dimensions and margins of the graph
+          // set the dimensions and margins of the graph
           //   var margin = { top: 10, right: 200, bottom: 100, left: 100 },
           //     width = 900 - margin.left - margin.right,
           //     height = 900 - margin.top - margin.bottom;
 
-          //   // append the svg object to the body of the page
+          //   append the svg object to the body of the page
           //   var svg = d3
           //     .select("#scatters2")
           //     .append("svg")
@@ -325,15 +312,15 @@
           //       "translate(" + margin.left + "," + margin.top + ")"
           //     );
 
-          // build and add x axis
-          var x = d3
-            .scaleTime()
-            .domain(
-              d3.extent(data, function (d) {
-                return d.DateApproved;
-              })
-            )
-            .range([0, width]);
+          //   build and add x axis
+          //   var x = d3
+          //     .scaleTime()
+          //     .domain(
+          //       d3.extent(data, function (d) {
+          //         return d.DateApproved;
+          //       })
+          //     )
+          //     .range([0, width]);
 
           svg
             .append("g")
@@ -343,79 +330,75 @@
             .attr("transform", "translate(-10,0)rotate(-45)")
             .style("text-anchor", "end");
 
-          //   build and add Y axis
-          //   if (y_value == "LoanAmount") {
-          //     y_target = d.LoanAmount;
-          //   } else y_target = "d." + y_value;
-          //   console.log(typeof y_target);
-          //   y.domain([
-          //     0,
-          //     d3.max(data, function (d) {
-          //       if (y_value == "LoanAmount") {
-          //         return d.LoanAmount;
-          //       } else if (y_value == "NAICSCode_2") {
-          //         return d.NAICSCode_2;
-          //       } else if (y_value == "JobsReported") {
-          //         return d.JobsReported;
-          //       } else {
-          //         return d.Zip;
-          //       }
-          //     }),
-          //   ]).range([height, 0]);
-
-          //   svg.selectAll("g.y.axis").call(d3.axisLeft(y));
-
           // build and add Y axis
-          var y = d3
-            .scaleLinear()
-            .domain([
-              0,
-              d3.max(data, function (d) {
-                if (y_value == "LoanAmount") {
+          if (y_value == "LoanAmount") {
+            y = d3
+              .scaleLinear()
+              .domain([
+                0,
+                d3.max(data, function (d) {
                   return d.LoanAmount;
-                } else if (y_value == "NAICSCode_2") {
+                }),
+              ])
+              .range([height, 0]);
+          } else if (y_value == "NAICSCode_2") {
+            y = d3
+              .scaleLinear()
+              .domain(
+                d3.extent(data, function (d) {
                   return d.NAICSCode_2;
-                } else if (y_value == "JobsReported") {
+                })
+              )
+              .range([height, 0]);
+          } else if (y_value == "JobsReported") {
+            y = d3
+              .scaleLinear()
+              .domain([
+                0,
+                d3.max(data, function (d) {
                   return d.JobsReported;
-                } else {
+                }),
+              ])
+              .range([height, 0]);
+          } else if (y_value == "Zip") {
+            y = d3
+              .scaleLinear()
+              .domain(
+                d3.extent(data, function (d) {
                   return d.Zip;
-                }
-              }),
-            ])
-            .range([height, 0]);
-          svg.append("g").attr("class", "y axis").call(d3.axisLeft(y));
+                })
+              )
+              .range([height, 0]);
+          }
 
-          // color palette
-          // var lender_list = data.map(function (d) {
-          //   return d.Lender;
-          // }); // list of group names
-          // let unique_lenders = [...new Set(lender_list)];
+          svg.append("g").call(d3.axisLeft(y));
 
           color = d3.scaleOrdinal().domain(topNLenders).range(d3.schemeSet3);
-          // console.log(data[0].LoanAmount);
+          console.log(data[0].DateApproved);
 
           // Draw the dots
           svg
-            // .append("g")
-            .selectAll("g.scatter.dots")
+            .append("g")
+            .selectAll("dot")
             .data(topNdata)
-            // .enter()
-            // .append("circle")
+            .enter()
+            .append("circle")
             .attr("cx", function (d) {
               //   console.log(d.DateApproved);
               return x(d.DateApproved);
             })
             .attr("cy", function (d) {
               if (y_value == "LoanAmount") {
+                // console.log(y(d.LoanAmount));
                 return y(d.LoanAmount);
               } else if (y_value == "NAICSCode_2") {
+                // console.log(y(d.NAICSCode_2));
                 return y(d.NAICSCode_2);
               } else if (y_value == "JobsReported") {
                 return y(d.JobsReported);
               } else {
                 return y(d.Zip);
               }
-              //   return y(d.LoanAmount);
             })
             .attr("r", 4)
             .style("fill", function (d) {
@@ -424,10 +407,10 @@
 
           // Legend:Add one dot in the legend for each name.
           svg
-            .selectAll("circle")
+            .selectAll("mydots")
             .data(topNLenders)
-            // .enter()
-            // .append("circle")
+            .enter()
+            .append("circle")
             .attr("cx", 620)
             .attr("cy", function (d, i) {
               return 0 + i * 25;
@@ -455,6 +438,7 @@
             })
             .attr("text-anchor", "left")
             .style("alignment-baseline", "middle");
+          console.log(data[0].DateApproved);
         });
       }
     </script>

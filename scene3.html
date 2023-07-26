@@ -68,7 +68,7 @@
     </div>
     <script>
       async function init() {
-        var data = await d3.csv("https://melindatsay.github.io/ppp_data.csv");
+        var data = await d3.csv("./ppp_data.csv");
 
         // filter and select top N lenders
         // group and roll-up
@@ -214,7 +214,7 @@
         // two_drop_submit.addEventListener("submit", (e) => {
         //   e.preventDefault();
         // });
-        data = await d3.csv("https://melindatsay.github.io/ppp_data.csv");
+        data = await d3.csv("./ppp_data.csv");
         data.forEach(function (part, index) {
           data[index].DateApproved = parseDate(part.DateApproved);
           data[index].LoanAmount = parseFloat(part.LoanAmount);
