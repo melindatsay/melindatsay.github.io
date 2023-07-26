@@ -18,40 +18,108 @@
     #buttoncontainer {
       text-align: center;
     }
-    #svgp {
+    /* #svgp {
       text-align: center;
-    }
+    } */
     p {
       color: #698db3;
-      padding-left: 32%;
-      padding-right: 32%;
+      /* padding-left: 32%;
+      padding-right: 32%; */
     }
+    .multiselect {
+  width: 280px;
+}
+
+.selectBox {
+  position: relative;
+}
+
+.selectBox select {
+  width: 100%;
+  /* font-weight: bold; */
+}
+
+.overSelect {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+#checkboxes {
+  display: none;
+  border: 1px #dadada solid;
+}
+
+#checkboxes label {
+  display: block;
+}
+
+#checkboxes label:hover {
+  background-color: #1e90ff;
+}
   </style>
   <body onload="init()">
     <h1>2020 Hawaii Paycheck Protection Program (PPP) Loan Amount Trend</h1>
-    <h2 id="h2-sub">Scene 3: Top 10 Lender v.s. NAICS Code Across Time</h2>
+    <h2 id="h2-sub">Scene 3: Top 10 Lenders v.s. Loan Amount Across Time</h2>
 
     <div id="svgp">
       <form action="" id="two-drop-submit">
-        <p>
-          Select Top N:
-          <select id="top-n-dropdown">
-            <option value="10">Top 10</option>
-            <option value="5">Top 5</option>
-            <option value="3">Top 3</option>
-            <option value="2">Top 2<code></code></option>
-            <option value="1">Top 1<code></code></option>
-          </select>
-        </p>
-        <p>
-          Select a Parameter for Y-axis:
-          <select id="y-axis-dropdown">
-            <option value="LoanAmount">Loan Amount</option>
-            <option value="NAICSCode_2">NAICS Code</option>
-            <option value="JobsReported">Jobs Reported</option>
-            <option value="Zip">Zip</option>
-          </select>
-        </p>
+         <p>Select one or more Lenders
+        <div class="multiselect">
+            <div class="selectBox" id="selectBox" onclick="showCheckboxes()">
+              <select>
+                <option>-- Top 10 Lenders --</option>
+              </select>
+              <div class="overSelect"></div>
+            </div>
+            <div id="checkboxes">
+              <label for="Central Pacific Bank">
+                <input type="checkbox" name="lenders" value="Central Pacific Bank" />Top 1: Central Pacific
+                Bank</label
+              >
+              <label for="First Hawaiian Bank">
+                <input type="checkbox" name="lenders" value="First Hawaiian Bank" />Top 2: First
+                Hawaiian Bank</label
+              >
+              <label for="American Savings Bank, FSB">
+                <input type="checkbox" name="lenders" value="American Savings Bank, FSB" />Top 3:
+                American Savings Bank, FSB</label
+              >
+              <label for="Bank of Hawaii">
+                <input type="checkbox"name="lenders" value="Bank of Hawaii" />Top 4: Bank of
+                Hawaii</label
+              >
+              <label for="Hawaii National Bank">
+                <input type="checkbox" name="lenders" value="Hawaii National Bank" />Top 5: Hawaii
+                National Bank</label
+              >
+              <label for="Kabbage, Inc.">
+                <input type="checkbox" name="lenders" value="Kabbage, Inc." />Top 6: Kabbage, Inc.</label
+              >
+              <label for="HawaiiUSA FCU">
+                <input type="checkbox" name="lenders" value="HawaiiUSA FCU" />Top 7: HawaiiUSA FCU</label
+              >
+              <label for="Celtic Bank Corporation">
+                <input type="checkbox" name="lenders" value="Celtic Bank Corporation" />Top 8: Celtic Bank Corporation</label
+              >
+              <label for="Cross River Bank">
+                <input type="checkbox" name="lenders" value="Cross River Bank" />Top 9: Cross River Bank</label
+              >
+              <label for="Ohana Pacific Bank">
+                <input type="checkbox" name="lenders" value="Ohana Pacific Bank" />Top 10: Ohana Pacific Bank</label
+              >
+            </div>
+          </p>
+          <p>Select a Parameter for Y-axis:
+        <select id="y-axis-dropdown">
+          <option value="LoanAmount">Loan Amount</option>
+          <option value="NAICSCode_2">NAICS Code</option>
+          <option value="JobsReported">Jobs Reported</option>
+          <option value="Zip">Zip</option>
+        </select>
+      </p>
         <button type="submit">Submit</button>
       </form>
 
@@ -68,6 +136,7 @@
     </div>
     <script>
       async function init() {
+        
         var data = await d3.csv("./ppp_data.csv");
 
         // filter and select top N lenders
@@ -214,6 +283,44 @@
         // two_drop_submit.addEventListener("submit", (e) => {
         //   e.preventDefault();
         // });
+        var expanded = false;
+
+        
+        document.getElementById("selectBox").onclick=function showCheckboxes() {
+          var checkboxes = document.getElementById("checkboxes");
+          if (!expanded) {
+            checkboxes.style.display = "block";
+            expanded = true;
+          } else {
+            checkboxes.style.display = "none";
+            expanded = false;
+          }
+        }
+
+        // listen for checkboxes values
+        // Select all checkboxes with the name 'settings' using querySelectorAll.
+        var checkboxes = document.querySelectorAll("input[type=checkbox]");
+        let checked_lenders = []
+        // console.log(checkboxes)
+        /*
+        For IE11 support, replace arrow functions with normal functions and
+        use a polyfill for Array.forEach:
+        https://vanillajstoolkit.com/polyfills/arrayforeach/
+        */
+
+        // Use Array.forEach to add an event listener to each checkbox.
+        checkboxes.forEach(function(checkbox) {
+          checkbox.addEventListener('change', function() {
+            checked_lenders  = 
+              Array.from(checkboxes) // Convert checkboxes to an array to use filter and map.
+              .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
+              .map(i => i.defaultValue) // Use Array.map to extract only the checkbox values from the array of objects.
+              
+            console.log(checked_lenders)
+          })
+        });
+
+
         data = await d3.csv("./ppp_data.csv");
         data.forEach(function (part, index) {
           data[index].DateApproved = parseDate(part.DateApproved);
@@ -227,7 +334,7 @@
         //update chart by two dropdown values
         d3.select("#two-drop-submit").on("submit", function () {
           d3.event.preventDefault();
-          console.log(data[0].DateApproved);
+          // console.log(data[0].DateApproved);
           var y_value = document.getElementById("y-axis-dropdown").value;
           console.log(y_value);
           // y-axis text
@@ -237,12 +344,15 @@
             ].innerHTML;
 
           //topN value
-          topN = document.getElementById("top-n-dropdown").value;
-          console.log(topN);
+          // topN = document.getElementById("top-n-dropdown").value;
+          // console.log(topN);
 
+
+
+          
           //update Scene 3 h2 headline
           document.getElementById("h2-sub").innerHTML =
-            "Scene 3: Top " + topN + " Lender v.s. " + y_text + " Across Time";
+            "Scene 3: Selected Lenders v.s. " + y_text + " Across Time";
 
           // filter and select top N lenders
           // group and roll-up
@@ -253,7 +363,7 @@
           //     (d) => d.Lender
           //   );
           // var topN = 10;
-          console.log(data[0].DateApproved);
+          // console.log(data[0].DateApproved);
           topNLoanAmountByLenders_array = Array.from(
             LoanAmountByLenders,
             ([name, value]) => ({ name, value })
@@ -263,9 +373,11 @@
             })
             .slice(0, parseInt(topN));
           topNLenders = topNLoanAmountByLenders_array.map((a) => a.name);
-          //   console.log(topNLenders);
-          console.log(data[0].DateApproved);
-          topNdata = data.filter((entry) => topNLenders.includes(entry.Lender));
+          // //   console.log(topNLenders);
+          // console.log(data[0].DateApproved);
+          // topNdata = data.filter((entry) => topNLenders.includes(entry.Lender));
+          checked_lenders_data = data.filter((entry) => checked_lenders.includes(entry.Lender));
+          console.log(checked_lenders_data)
           //   console.log(topNdata);
 
           //   console.log(topNLenders);
@@ -286,7 +398,7 @@
           //     }
           //   });
           //   console.log(topNdata);
-          topNdata.sort(function (a, b) {
+          checked_lenders_data.sort(function (a, b) {
             return a.DateApproved - b.DateApproved;
           });
           //   console.log(topNdata);
@@ -380,7 +492,7 @@
           svg
             .append("g")
             .selectAll("dot")
-            .data(topNdata)
+            .data(checked_lenders_data)
             .enter()
             .append("circle")
             .attr("cx", function (d) {
@@ -408,7 +520,7 @@
           // Legend:Add one dot in the legend for each name.
           svg
             .selectAll("mydots")
-            .data(topNLenders)
+            .data(checked_lenders)
             .enter()
             .append("circle")
             .attr("cx", 620)
@@ -423,7 +535,7 @@
           // Legend: Add one text next to the dot in the legend for each name.
           svg
             .selectAll("mylabels")
-            .data(topNLenders)
+            .data(checked_lenders)
             .enter()
             .append("text")
             .attr("x", 630)
