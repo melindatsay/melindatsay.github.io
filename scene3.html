@@ -65,16 +65,16 @@
 #checkboxes label {
   display: block;
 }
-
 #checkboxes label:hover {
   background-color: #adc1d6;
 }
 #tooltip {
-    width: 205px;
+    width: 280px;
     height: 120px;
     background-color: white;
     border: 1px solid #698db3;
     position: absolute;
+    font-size: 12px
 }
 
 
@@ -136,7 +136,7 @@
           <option value="LoanAmount">Loan Amount</option>
           <option value="NAICSCode_2">NAICS Code</option>
           <option value="JobsReported">Jobs Reported</option>
-          <option value="Zip">Zip</option>
+          <option value="Zip">Zip Code</option>
         </select>
         </p>
         <button type="submit">Submit</button>
@@ -282,9 +282,10 @@
           })
           .on('mouseover', function(d) {
           //  d3.select('#tooltip').transition().duration(200).style('opacity', 1).text(d.Lender +" / $" + d.LoanAmount)
-          tooltip.html("<p id='tooltip-p'>" +" -"+ d.Lender + 
+          tooltip.html("<p id='tooltip-p'>" +" -Lender: "+ d.Lender + 
             "<br> -Loan Amount: "+d.LoanAmount+
             "<br> -NAICS Code: "+d.NAICSCode_2+
+            "<br> -NAICS Sector: "+d.NAICSCode_2_sector+
             "<br> -Jobs Reported: "+d.JobsReported+
             "<br> -Zip Code: "+d.Zip
             ).transition().duration(200).style('opacity', 1)
@@ -487,6 +488,11 @@
             .selectAll("text")
             .attr("transform", "translate(-10,0)rotate(-45)")
             .style("text-anchor", "end");
+          svg
+            .append("text")
+            .attr("fill", "black")
+            .attr("transform", "translate(270, 750)")
+            .text("Date Approved");
 
           // build and add Y axis
           if (y_value == "LoanAmount") {
@@ -531,9 +537,14 @@
 
           svg.append("g")
              .call(d3.axisLeft(y))
+            //  .append("text")
+            //  .attr("fill", "black")
+            //  .attr("transform", "translate(-50, 400)")
+            //  .text(y_text);
+          svg
              .append("text")
              .attr("fill", "black")
-             .attr("transform", "translate(-50, 400)")
+             .attr("transform", "translate(-150, 370)")
              .text(y_text);
 
           color = d3.scaleOrdinal().domain(topNLenders).range(d3.schemeSet3);
@@ -569,9 +580,10 @@
             })          
             .on('mouseover', function(d) {
           //  d3.select('#tooltip').transition().duration(200).style('opacity', 1).text(d.Lender +" / $" + d.LoanAmount)
-          tooltip.html("<p id='tooltip-p'>" +" -"+ d.Lender + 
+          tooltip.html("<p id='tooltip-p'>" +" -Lender: "+ d.Lender + 
             "<br> -Loan Amount: "+d.LoanAmount+
             "<br> -NAICS Code: "+d.NAICSCode_2+
+            "<br> -NAICS Sector: "+d.NAICSCode_2_sector+
             "<br> -Jobs Reported: "+d.JobsReported+
             "<br> -Zip Code: "+d.Zip
             ).transition().duration(200).style('opacity', 1)
