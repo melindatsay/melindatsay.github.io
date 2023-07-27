@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
   <script src="https://d3js.org/d3.v5.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
   <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
   <script src="https://d3js.org/d3-array.v2.min.js"></script>
   <style>
@@ -28,17 +27,16 @@
     }
   </style>
   <body onload="init()">
-    <h1>2020 Hawaii Paycheck Protection Program (PPP) Loan Amount Trend</h1>
-    <h2>Scene 2: Top 5 Lender v.s. Approved Loan Amount Across Time</h2>
+    <h1>2020 Hawaii Paycheck Protection Program (PPP) Lenders Trend</h1>
+    <h2>Scene 2: Each Lender's Total Approved Loan Amount Percentage</h2>
 
     <div id="svgp">
       <p>
-        Within the top 20% Loan Amount bracket across time, most loan amount are
-        approved by Central Pacific Bank, First Hawaiian Bank and American
-        Savings. Most loan amount approved by Hawaiian National Bank are within
-        the bottom 50% bracket across time.
+        There are 204 Lenders in the Paycheck Protection Program. Top 10 Lenders
+        by its total approved loan amount accounted for 93.74% of total loan
+        amount of the entire program.
       </p>
-      <div id="scatters2"></div>
+      <div id="pie-chart-1"></div>
     </div>
     <div id="buttoncontainer">
       <form action="/index.html">
@@ -48,19 +46,48 @@
         <button type="submit">Go to Scene 3</button>
       </form>
     </div>
+
     <script>
       async function init() {
+        // set the dimensions and margins of the graph
+        var width = 800;
+        height = 800;
+        margin = 200;
+
         const data = await d3.csv("./ppp_data.csv");
 
+        // The radius of the pieplot is half the width or half the height (smallest one). I subtract a bit of margin.
+        var radius = Math.min(width, height) / 2 - margin;
+
+        // append the svg object to the div called 'pie-chart-1'
+        var svg = d3
+          .select("#pie-chart-1")
+          .append("svg")
+          .attr("width", width)
+          .attr("height", height)
+          .append("g")
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+        // var dummy_data = { a: 9, b: 20, c: 30, d: 8, e: 12 };
+        // var text_data = d3.entries(dummy_data);
+        // console.log(text_data);
         // filter and select top N lenders
         // group and roll-up
-
         let LoanAmountByLenders = d3.rollup(
           data,
           (v) => d3.sum(v, (d) => d.LoanAmount),
           (d) => d.Lender
         );
-        const topN = 5;
+
+        let LoanAmountByLenders_array = Array.from(
+          LoanAmountByLenders,
+          ([name, value]) => ({ name, value })
+        ).sort(function (x, y) {
+          return d3.descending(x.value, y.value);
+        });
+        // .slice(0, +topN);
+
+        var topN = 10;
         let topNLoanAmountByLenders_array = Array.from(
           LoanAmountByLenders,
           ([name, value]) => ({ name, value })
@@ -71,110 +98,70 @@
           .slice(0, topN);
 
         let topNLenders = topNLoanAmountByLenders_array.map((a) => a.name);
+        // build color from all Lenders
+        var color = d3
+          .scaleOrdinal()
+          .domain(LoanAmountByLenders)
+          .range(d3.schemeSet3);
 
-        topNdata = data.filter((entry) => topNLenders.includes(entry.Lender));
-        // console.log(topNLenders);
-        // console.log(topNdata);
-
-        var parseDate = d3.timeParse("%Y-%m-%dT%H:%M:%SZ");
-        // console.log(data[0].DateApproved);
-        topNdata.forEach(function (part, index) {
-          topNdata[index].DateApproved = parseDate(part.DateApproved);
-          topNdata[index].LoanAmount = parseFloat(part.LoanAmount);
+        // Compute the position of each group on the pie:
+        var pie = d3.pie().value(function (d) {
+          return d.value["value"];
         });
+        var arcs = pie(d3.entries(LoanAmountByLenders_array));
+        // Compute the position of each group on the pie:
+        // var pie = d3.pie().value(function (d) {
+        //   return d.value;
+        // });
+        // var arcs = pie(d3.entries(LoanAmountByLenders_array));
+        console.log(arcs);
 
-        topNdata.sort(function (a, b) {
-          return a.DateApproved - b.DateApproved;
-        });
+        // compute each lender's percentage
+        let lender_percentage = [];
+        lender_percentage = Array.from(arcs).map((i) =>
+          parseFloat(
+            ((i.endAngle - i.startAngle) / (2 * Math.PI)) * 100
+          ).toFixed(2)
+        );
+        const topNLenderPercentage = lender_percentage.slice(0, topN);
 
-        // console.log(data[0].DateApproved);
-        // set the dimensions and margins of the graph
-        var margin = { top: 10, right: 250, bottom: 100, left: 150 },
-          width = 900 - margin.left - margin.right,
-          height = 850 - margin.top - margin.bottom;
-
-        // append the svg object to the body of the page
-        var svg = d3
-          .select("#scatters2")
-          .append("svg")
-          .attr("width", width + margin.left + margin.right)
-          .attr("height", height + margin.top + margin.bottom)
-          .append("g")
-          .attr(
-            "transform",
-            "translate(" + margin.left + "," + margin.top + ")"
-          );
-
-        // build and add x axis
-        var x = d3
-          .scaleTime()
-          .domain(
-            d3.extent(data, function (d) {
-              return d.DateApproved;
-            })
-          )
-          .range([0, width]);
-
+        console.log(topNLenderPercentage);
+        // Build the pie chart: Basically, each part of the pie is a path that we build using the arc function.
         svg
-          .append("g")
-          .attr("transform", "translate(0," + height + ")")
-          .call(d3.axisBottom(x))
-          .selectAll("text")
-          .attr("transform", "translate(-10,0)rotate(-45)")
-          .style("text-anchor", "end");
-
-        svg
-          .append("text")
-          .attr("fill", "black")
-
-          .attr("transform", "translate(270, 800)")
-          .style("text-anchor", "middle")
-          .text("Date Approved");
-
-        // build and add Y axis
-        var y = d3
-          .scaleLinear()
-          .domain([
-            0,
-            d3.max(data, function (d) {
-              return d.LoanAmount;
-            }),
-          ])
-          .range([height, 0]);
-        svg.append("g").call(d3.axisLeft(y));
-        svg
-          .append("text")
-          .attr("fill", "black")
-          .attr("transform", "translate(-150, 400)")
-          .text("Loan Amount ($)");
-
-        // color palette
-        // var lender_list = data.map(function (d) {
-        //   return d.Lender;
-        // }); // list of group names
-        // let unique_lenders = [...new Set(lender_list)];
-
-        var color = d3.scaleOrdinal().domain(topNLenders).range(d3.schemeSet3);
-        // console.log(data[0].LoanAmount);
-
-        // Draw the dots
-        svg
-          .append("g")
-          .selectAll("dot")
-          .data(topNdata)
+          .selectAll("whatever")
+          .data(arcs)
           .enter()
-          .append("circle")
-          .attr("cx", function (d) {
-            // console.log(d.DateApproved);
-            return x(d.DateApproved);
+          .append("path")
+          .attr("d", d3.arc().innerRadius(0).outerRadius(radius))
+          .attr("fill", function (d) {
+            return color(d.data.value["name"]);
           })
-          .attr("cy", function (d) {
-            return y(d.LoanAmount);
-          })
-          .attr("r", 4)
-          .style("fill", function (d) {
-            return color(d.Lender);
-          });
+          .attr("stroke", "black")
+          .style("stroke-width", "2px")
+          .style("opacity", 0.7);
+        // Now add the annotation. Use the centroid method to get the best coordinates
+        // svg
+        //   .selectAll("mySlices")
+        //   .data(arcs)
+        //   .enter()
+        //   .append("text")
+        //   .text(function (d) {
+        //     return (
+        //       d.data.value["name"] +
+        //       " / " +
+        //       parseInt(((d.endAngle - d.startAngle) / (2 * Math.PI)) * 100) +
+        //       "%"
+        //     );
+        //   })
+        //   .attr("transform", function (d) {
+        //     return (
+        //       "translate(" +
+        //       d3.arc().innerRadius(0).outerRadius(radius).centroid(d) +
+        //       ")"
+        //     );
+        //   })
+        //   .style("text-anchor", "middle")
+        //   .style("font-size", 10);
 
         // Legend:Add one dot in the legend for each name.
         svg
@@ -182,7 +169,7 @@
           .data(topNLenders)
           .enter()
           .append("circle")
-          .attr("cx", 540)
+          .attr("cx", 220)
           .attr("cy", function (d, i) {
             return 0 + i * 25;
           }) // 100 is where the first dot appears. 25 is the distance between dots
@@ -197,7 +184,7 @@
           .data(topNLenders)
           .enter()
           .append("text")
-          .attr("x", 550)
+          .attr("x", 230)
           .attr("y", function (d, i) {
             return 0 + i * 25;
           }) // 100 is where the first dot appears. 25 is the distance between dots
@@ -208,44 +195,28 @@
             return d;
           })
           .attr("text-anchor", "left")
-          .style("alignment-baseline", "middle");
-        // svg
-        //   .append("g")
-        //   .attr("transform", "translate(60,10)")
-        //   .selectAll("circle")
-        //   .data(sumstat)
-        //   .enter()
-        //   .append("circle")
-        //   .attr("cx", function (d) {
-        //     return x(+d.DateApproved);
-        //   })
-        //   .attr("cy", function (d) {
-        //     return y(d.LoanAmount);
-        //   })
-        //   .attr("r", 1)
-        //   .style("fill", function (d) {
-        //     return color(d.key);
-        //   });
-        // svg
-        //   .selectAll(".line")
-        //   .data(sumstat)
-        //   .enter()
-        //   .append("path")
-        //   .attr("fill", "none")
-        //   .attr("stroke", function (d) {
-        //     return color(d.key);
-        //   })
-        //   .attr("stroke-width", 1.5)
-        //   .attr("d", function (d) {
-        //     return d3
-        //       .line()
-        //       .x(function (d) {
-        //         return x(d.LoanAmount);
-        //       })
-        //       .y(function (d) {
-        //         return y(+d.DateApproved);
-        //       })(d.values);
-        //   });
+          .style("alignment-baseline", "middle")
+          .style("font-size", 12);
+
+        // Legend: Add percentage in text next to the name in the legend
+        svg
+          .selectAll("mylabels")
+          .data(topNLenderPercentage)
+          .enter()
+          .append("text")
+          .attr("x", 380)
+          .attr("y", function (d, i) {
+            return 0 + i * 25;
+          }) // 100 is where the first dot appears. 25 is the distance between dots
+          .style("fill", function (d) {
+            return color(d);
+          })
+          .text(function (d) {
+            return d + "%";
+          })
+          .attr("text-anchor", "left")
+          .style("alignment-baseline", "middle")
+          .style("font-size", 12);
       }
     </script>
   </body>

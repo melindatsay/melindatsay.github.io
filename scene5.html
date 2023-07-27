@@ -1,64 +1,635 @@
 <!DOCTYPE html>
 <html lang="en">
   <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
+  <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+  <script src="https://d3js.org/d3-array.v2.min.js"></script>
   <style>
     circle {
       fill: lightblue;
       stroke: black;
     }
+
+    h1,
+    h2,
+    h3 {
+      text-align: center;
+      color: #698db3;
+    }
+    #scatters2{
+      text-align: center;
+    }
+    #buttoncontainer {
+      text-align: center;
+    }
+    #main-chart {
+      text-align: center;
+    }
+    p {
+      color: #698db3;
+      /* padding-left: 32%;
+      padding-right: 32%; */
+
+    }
+    .multiselect {
+  width: 280px;
+}
+ #y-axis-dropdown{
+  width: 280px;
+  /* position: absolute; */
+
+ }
+
+.selectBox {
+  position: relative;
+}
+
+.selectBox select {
+  width: 100%;
+  /* font-weight: bold; */
+}
+
+.overSelect {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+#checkboxes {
+  display: none;
+  border: 1px #dadada solid;
+}
+
+#checkboxes label {
+  display: block;
+}
+#checkboxes label:hover {
+  background-color: #adc1d6;
+}
+#tooltip {
+    width: 280px;
+    height: 120px;
+    background-color: white;
+    border: 1px solid #698db3;
+    position: absolute;
+    font-size: 12px
+}
+
+
   </style>
   <body onload="init()">
-    <form action="/scene2.html">
-      <button type="submit">Scene 2</button>
-    </form>
-    <form action="/scene3.html">
-      <button type="submit">Scene 3</button>
-    </form>
-    <svg width="300" height="300"></svg>
+    <h1>2020 Hawaii Paycheck Protection Program (PPP) Lenders Trend</h1>
+    <h2 id="h2-sub">Scene 3: Top 10 Lenders v.s. Loan Amount Across Time</h2>
+
+    
+      <form action="" id="two-drop-submit">
+        <p>Select one or more Lenders
+        <div class="multiselect">
+            <div class="selectBox" id="selectBox" onclick="showCheckboxes()">
+              <select>
+                <option>-- Top 10 Lenders --</option>
+              </select>
+              <div class="overSelect"></div>
+            </div>
+            <div id="checkboxes">
+              <label for="Central Pacific Bank">
+                <input type="checkbox" name="lenders" value="Central Pacific Bank" />Top 1: Central Pacific
+                Bank</label
+              >
+              <label for="First Hawaiian Bank">
+                <input type="checkbox" name="lenders" value="First Hawaiian Bank" />Top 2: First
+                Hawaiian Bank</label
+              >
+              <label for="American Savings Bank, FSB">
+                <input type="checkbox" name="lenders" value="American Savings Bank, FSB" />Top 3:
+                American Savings Bank, FSB</label
+              >
+              <label for="Bank of Hawaii">
+                <input type="checkbox"name="lenders" value="Bank of Hawaii" />Top 4: Bank of
+                Hawaii</label
+              >
+              <label for="Hawaii National Bank">
+                <input type="checkbox" name="lenders" value="Hawaii National Bank" />Top 5: Hawaii
+                National Bank</label
+              >
+              <label for="Kabbage, Inc.">
+                <input type="checkbox" name="lenders" value="Kabbage, Inc." />Top 6: Kabbage, Inc.</label
+              >
+              <label for="HawaiiUSA FCU">
+                <input type="checkbox" name="lenders" value="HawaiiUSA FCU" />Top 7: HawaiiUSA FCU</label
+              >
+              <label for="Celtic Bank Corporation">
+                <input type="checkbox" name="lenders" value="Celtic Bank Corporation" />Top 8: Celtic Bank Corporation</label
+              >
+              <label for="Cross River Bank">
+                <input type="checkbox" name="lenders" value="Cross River Bank" />Top 9: Cross River Bank</label
+              >
+              <label for="Ohana Pacific Bank">
+                <input type="checkbox" name="lenders" value="Ohana Pacific Bank" />Top 10: Ohana Pacific Bank</label
+              >
+            </div>
+          </p>
+          <p>Select a Parameter for Y-axis:
+        <select id="y-axis-dropdown">
+          <option value="LoanAmount">Loan Amount</option>
+          <option value="NAICSCode_2">NAICS Code</option>
+          <option value="JobsReported">Jobs Reported</option>
+          <option value="Zip">Zip Code</option>
+        </select>
+        </p>
+        <button type="submit">Submit</button>
+      </form>
+
+      <!-- <p id="selected-dropdown"></p> -->
+      <div id="main-chart">
+      <div id="scatters2"></div>
+      </div>
+    </div>
+    <div id="buttoncontainer">
+      <form action="/index.html">
+        <button type="submit">Go to Scene 1</button>
+      </form>
+      <form action="/scene2.html">
+        <button type="submit">Go to Scene 2</button>
+      </form>
+    </div>
     <script>
       async function init() {
-        var x = d3.scaleLog().base(10).domain([10, 150]).range([0, 200]);
+        
+        var data = await d3.csv("./ppp_data.csv");
 
-        var y = d3.scaleLog().base(10).domain([10, 150]).range([200, 0]);
+        // filter and select top N lenders
+        // group and roll-up
+        let LoanAmountByLenders = d3.rollup(
+          data,
+          (v) => d3.sum(v, (d) => d.LoanAmount),
+          (d) => d.Lender
+        );
+        var topN = 10;
+        let topNLoanAmountByLenders_array = Array.from(
+          LoanAmountByLenders,
+          ([name, value]) => ({ name, value })
+        )
+          .sort(function (x, y) {
+            return d3.descending(x.value, y.value);
+          })
+          .slice(0, +topN);
 
-        const data = await d3.csv("https://melindatsay.github.io/cars2017.csv");
+        let topNLenders = topNLoanAmountByLenders_array.map((a) => a.name);
+        // console.log(data);
+        topNdata = data.filter((entry) => topNLenders.includes(entry.Lender));
+        // console.log(topNdata);
+        // parse and sort date for x-axis
+        var parseDate = d3.timeParse("%Y-%m-%dT%H:%M:%SZ");
+        // console.log(data[0].DateApproved);
+        topNdata.forEach(function (part, index) {
+          topNdata[index].DateApproved = parseDate(part.DateApproved);
+          topNdata[index].LoanAmount = parseFloat(part.LoanAmount);
+          topNdata[index].NAICSCode_2 = parseInt(part.NAICSCode_2);
+          topNdata[index].JobsReported = parseInt(part.JobsReported);
+        });
 
-        d3.select("svg")
+        topNdata.sort(function (a, b) {
+          return a.DateApproved - b.DateApproved;
+        });
+        // console.log(topNdata);
+        // console.log(data[0].DateApproved);
+
+        // set the dimensions and margins of the graph
+        var margin = { top: 10, right: 250, bottom: 100, left: 200 },
+          width = 1100 - margin.left - margin.right,
+          height = 800 - margin.top - margin.bottom;
+
+        // append the svg object to the body of the page
+        var svg = d3
+          .select("#scatters2")
+          .append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
           .append("g")
-          .attr("transform", "translate(50,50)")
-          .selectAll("circle")
-          .data(data)
+          .attr(
+            "transform",
+            "translate(" + margin.left + "," + margin.top + ")"
+          );
+
+        // build and add x axis
+        var x = d3
+          .scaleTime()
+          .domain(
+            d3.extent(data, function (d) {
+              return d.DateApproved;
+            })
+          )
+          .range([0, width]);
+
+        svg
+          .append("g")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x))
+          .selectAll("text")
+          .attr("transform", "translate(-10,0)rotate(-45)")
+          .style("text-anchor", "end")
+        svg
+          .append("text")
+          .attr("fill", "black")
+          .attr("transform", "translate(270, 750)")
+          .text("Date Approved");
+
+        // build and add Y axis
+        var y = d3
+          .scaleLinear()
+          .domain([
+            0,
+            d3.max(data, function (d) {
+              return d.LoanAmount;
+            }),
+          ])
+          .range([height, 0]);
+        svg.append("g")
+           .call(d3.axisLeft(y))
+        svg
+           .append("text")
+           .attr("fill", "black")
+           .attr("transform", "translate(-150, 370)")
+           .text("Loan Amount ($)");
+
+        // build color from topN lenders
+        var color = d3.scaleOrdinal().domain(topNLenders).range(d3.schemeSet3);
+        // console.log(data[0].LoanAmount);
+
+
+        //add tooltip
+        var tooltip = d3.select('body').append('div').attr('id', 'tooltip').attr('style', 'position: absolute; opacity: 0;');
+        // Draw the dots
+        svg
+          .append("g")
+          .selectAll("dot")
+          .data(topNdata)
           .enter()
           .append("circle")
           .attr("cx", function (d) {
-            return x(d.AverageCityMPG);
+            // console.log(d.DateApproved);
+            return x(d.DateApproved);
           })
           .attr("cy", function (d) {
-            return y(d.AverageHighwayMPG);
+            return y(d.LoanAmount);
           })
-          .attr("r", function (d) {
-            return 2 + parseInt(d.EngineCylinders);
+          .attr("r", 4)
+          .style("fill", function (d) {
+            return color(d.Lender);
+          })
+          .on('mouseover', function(d) {
+          //  d3.select('#tooltip').transition().duration(200).style('opacity', 1).text(d.Lender +" / $" + d.LoanAmount)
+          tooltip.html("<p id='tooltip-p'>" +" -Lender: "+ d.Lender + 
+            "<br> -Loan Amount: "+d.LoanAmount+
+            "<br> -NAICS Code: "+d.NAICSCode_2+
+            "<br> -NAICS Sector: "+d.NAICSCode_2_sector+
+            "<br> -Jobs Reported: "+d.JobsReported+
+            "<br> -Zip Code: "+d.Zip
+            ).transition().duration(200).style('opacity', 1)
+          })
+          .on('mouseout', function() {
+          d3.select('#tooltip').style('opacity', 0)
+          })
+          .on('mousemove', function() {
+          d3.select('#tooltip').style('left', (d3.event.pageX+10) + 'px').style('top', (d3.event.pageY+10) + 'px')
+          })
+
+        // Legend:Add one dot in the legend for each name.
+        svg
+          .selectAll("mydots")
+          .data(topNLenders)
+          .enter()
+          .append("circle")
+          .attr("cx", 680)
+          .attr("cy", function (d, i) {
+            return 0 + i * 25;
+          }) // 100 is where the first dot appears. 25 is the distance between dots
+          .attr("r", 3)
+          .style("fill", function (d) {
+            return color(d);
           });
 
-        d3.select("svg")
-          .append("g")
-          .attr("transform", "translate(50,50)")
-          .call(
-            d3
-              .axisLeft(y)
-              .tickValues([10, 20, 50, 100])
-              .tickFormat(d3.format("~s"))
-          );
+        // Legend: Add one text next to the dot in the legend for each name.
+        svg
+          .selectAll("mylabels")
+          .data(topNLenders)
+          .enter()
+          .append("text")
+          .attr("x", 690)
+          .attr("y", function (d, i) {
+            return 0 + i * 25;
+          }) // 100 is where the first dot appears. 25 is the distance between dots
+          .style("fill", function (d) {
+            return color(d);
+          })
+          .text(function (d) {
+            return d;
+          })
+          .attr("text-anchor", "left")
+          .style("alignment-baseline", "middle");
 
-        d3.select("svg")
-          .append("g")
-          .attr("transform", "translate(50,250)")
-          .call(
-            d3
-              .axisBottom(x)
-              .tickValues([10, 20, 50, 100])
-              .tickFormat(d3.format("~s"))
-          );
+
+        // expand checkboxes
+        var expanded = false;
+        document.getElementById("selectBox").onclick=function showCheckboxes() {
+          var checkboxes = document.getElementById("checkboxes");
+          if (!expanded) {
+            checkboxes.style.display = "block";
+            expanded = true;
+          } else {
+            checkboxes.style.display = "none";
+            expanded = false;
+          }
+        }
+
+
+
+
+
+        // listen for checkboxes values
+        // Select all checkboxes with the name 'settings' using querySelectorAll.
+        var checkboxes = document.querySelectorAll("input[type=checkbox]");
+        let checked_lenders = []
+        // console.log(checkboxes)
+
+        // Use Array.forEach to add an event listener to each checkbox.
+        checkboxes.forEach(function(checkbox) {
+          checkbox.addEventListener('change', function() {
+            checked_lenders  = 
+              Array.from(checkboxes) // Convert checkboxes to an array to use filter and map.
+              .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
+              .map(i => i.defaultValue) // Use Array.map to extract only the checkbox values from the array of objects.
+              
+            console.log(checked_lenders)
+          })
+        });
+
+
+        data = await d3.csv("./ppp_data.csv");
+        data.forEach(function (part, index) {
+          data[index].DateApproved = parseDate(part.DateApproved);
+          data[index].LoanAmount = parseFloat(part.LoanAmount);
+          data[index].NAICSCode_2 = parseFloat(part.NAICSCode_2);
+          data[index].JobsReported = parseInt(part.JobsReported);
+          data[index].Zip = parseInt(part.Zip);
+        });
+        ////////////////////        UPDATE      ///////////////////////
+        ///////////////////////////////////////////////////////////////
+        //update chart by two dropdown values
+        d3.select("#two-drop-submit").on("submit", function () {
+          d3.event.preventDefault();
+          // console.log(data[0].DateApproved);
+          var y_value = document.getElementById("y-axis-dropdown").value;
+          console.log(y_value);
+          // y-axis text
+          var y_text =
+            document.getElementById("y-axis-dropdown").options[
+              document.getElementById("y-axis-dropdown").selectedIndex
+            ].innerHTML;
+
+          //topN value
+          // topN = document.getElementById("top-n-dropdown").value;
+          // console.log(topN);
+
+
+
+          
+          //update Scene 3 h2 headline
+          document.getElementById("h2-sub").innerHTML =
+            "Scene 3: Selected Lenders v.s. " + y_text + " Across Time";
+
+          // filter and select top N lenders
+          // group and roll-up
+          //   console.log(data);
+          //   LoanAmountByLenders = d3.rollup(
+          //     data,
+          //     (v) => d3.sum(v, (d) => d.LoanAmount),
+          //     (d) => d.Lender
+          //   );
+          // var topN = 10;
+          // console.log(data[0].DateApproved);
+          topNLoanAmountByLenders_array = Array.from(
+            LoanAmountByLenders,
+            ([name, value]) => ({ name, value })
+          )
+            .sort(function (x, y) {
+              return d3.descending(x.value, y.value);
+            })
+            .slice(0, parseInt(topN));
+          topNLenders = topNLoanAmountByLenders_array.map((a) => a.name);
+          // //   console.log(topNLenders);
+          // console.log(data[0].DateApproved);
+          // topNdata = data.filter((entry) => topNLenders.includes(entry.Lender));
+          checked_lenders_data = data.filter((entry) => checked_lenders.includes(entry.Lender));
+          console.log(checked_lenders_data)
+          //   console.log(topNdata);
+
+          //   console.log(topNLenders);
+
+          // parse and sort date for x-axis
+          //   parseDate = d3.timeParse("%Y-%m-%dT%H:%M:%SZ");
+          // console.log(data[0].DateApproved);
+          //   topNdata.forEach(function (part, index) {
+          //     topNdata[index].DateApproved = parseDate(part.DateApproved);
+          //     if (y_value == "LoanAmount") {
+          //       topNdata[index].LoanAmount = parseFloat(part.LoanAmount);
+          //     } else if (y_value == "NAICSCode_2") {
+          //       topNdata[index].NAICSCode_2 = parseFloat(part.NAICSCode_2);
+          //     } else if (y_value == "JobsReported") {
+          //       topNdata[index].JobsReported = parseInt(part.JobsReported);
+          //     } else {
+          //       topNdata[index].Zip = parseInt(part.Zip);
+          //     }
+          //   });
+          //   console.log(topNdata);
+          checked_lenders_data.sort(function (a, b) {
+            return a.DateApproved - b.DateApproved;
+          });
+          //   console.log(topNdata);
+          //remove all subsets from svg
+          svg.selectAll("*").remove();
+
+          console.log(data[0].DateApproved);
+
+          // set the dimensions and margins of the graph
+          //   var margin = { top: 10, right: 200, bottom: 100, left: 100 },
+          //     width = 900 - margin.left - margin.right,
+          //     height = 900 - margin.top - margin.bottom;
+
+          //   append the svg object to the body of the page
+          //   var svg = d3
+          //     .select("#scatters2")
+          //     .append("svg")
+          //     .attr("width", width + margin.left + margin.right)
+          //     .attr("height", height + margin.top + margin.bottom)
+          //     .append("g")
+          //     .attr(
+          //       "transform",
+          //       "translate(" + margin.left + "," + margin.top + ")"
+          //     );
+
+          //   build and add x axis
+          //   var x = d3
+          //     .scaleTime()
+          //     .domain(
+          //       d3.extent(data, function (d) {
+          //         return d.DateApproved;
+          //       })
+          //     )
+          //     .range([0, width]);
+
+          svg
+            .append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x))
+            .selectAll("text")
+            .attr("transform", "translate(-10,0)rotate(-45)")
+            .style("text-anchor", "end");
+          svg
+            .append("text")
+            .attr("fill", "black")
+            .attr("transform", "translate(270, 750)")
+            .text("Date Approved");
+
+          // build and add Y axis
+          if (y_value == "LoanAmount") {
+            y = d3
+              .scaleLinear()
+              .domain([
+                0,
+                d3.max(data, function (d) {
+                  return d.LoanAmount;
+                }),
+              ])
+              .range([height, 0]);
+          } else if (y_value == "NAICSCode_2") {
+            y = d3
+              .scaleLinear()
+              .domain(
+                d3.extent(data, function (d) {
+                  return d.NAICSCode_2;
+                })
+              )
+              .range([height, 0]);
+          } else if (y_value == "JobsReported") {
+            y = d3
+              .scaleLinear()
+              .domain([
+                0,
+                d3.max(data, function (d) {
+                  return d.JobsReported;
+                }),
+              ])
+              .range([height, 0]);
+          } else if (y_value == "Zip") {
+            y = d3
+              .scaleLinear()
+              .domain(
+                d3.extent(data, function (d) {
+                  return d.Zip;
+                })
+              )
+              .range([height, 0]);
+          }
+
+          svg.append("g")
+             .call(d3.axisLeft(y))
+            //  .append("text")
+            //  .attr("fill", "black")
+            //  .attr("transform", "translate(-50, 400)")
+            //  .text(y_text);
+          svg
+             .append("text")
+             .attr("fill", "black")
+             .attr("transform", "translate(-150, 370)")
+             .text(y_text);
+
+          color = d3.scaleOrdinal().domain(topNLenders).range(d3.schemeSet3);
+          console.log(data[0].DateApproved);
+
+          // Draw the dots
+          svg
+            .append("g")
+            .selectAll("dot")
+            .data(checked_lenders_data)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+              //   console.log(d.DateApproved);
+              return x(d.DateApproved);
+            })
+            .attr("cy", function (d) {
+              if (y_value == "LoanAmount") {
+                // console.log(y(d.LoanAmount));
+                return y(d.LoanAmount);
+              } else if (y_value == "NAICSCode_2") {
+                // console.log(y(d.NAICSCode_2));
+                return y(d.NAICSCode_2);
+              } else if (y_value == "JobsReported") {
+                return y(d.JobsReported);
+              } else {
+                return y(d.Zip);
+              }
+            })
+            .attr("r", 4)
+            .style("fill", function (d) {
+              return color(d.Lender);
+            })          
+            .on('mouseover', function(d) {
+          //  d3.select('#tooltip').transition().duration(200).style('opacity', 1).text(d.Lender +" / $" + d.LoanAmount)
+          tooltip.html("<p id='tooltip-p'>" +" -Lender: "+ d.Lender + 
+            "<br> -Loan Amount: "+d.LoanAmount+
+            "<br> -NAICS Code: "+d.NAICSCode_2+
+            "<br> -NAICS Sector: "+d.NAICSCode_2_sector+
+            "<br> -Jobs Reported: "+d.JobsReported+
+            "<br> -Zip Code: "+d.Zip
+            ).transition().duration(200).style('opacity', 1)
+          })
+          .on('mouseout', function() {
+          d3.select('#tooltip').style('opacity', 0)
+          })
+          .on('mousemove', function() {
+          d3.select('#tooltip').style('left', (d3.event.pageX+10) + 'px').style('top', (d3.event.pageY+10) + 'px')
+          })
+
+          // Legend:Add one dot in the legend for each name.
+          svg
+            .selectAll("mydots")
+            .data(checked_lenders)
+            .enter()
+            .append("circle")
+            .attr("cx", 680)
+            .attr("cy", function (d, i) {
+              return 0 + i * 25;
+            }) // 100 is where the first dot appears. 25 is the distance between dots
+            .attr("r", 3)
+            .style("fill", function (d) {
+              return color(d);
+            });
+
+          // Legend: Add one text next to the dot in the legend for each name.
+          svg
+            .selectAll("mylabels")
+            .data(checked_lenders)
+            .enter()
+            .append("text")
+            .attr("x", 690)
+            .attr("y", function (d, i) {
+              return 0 + i * 25;
+            }) // 100 is where the first dot appears. 25 is the distance between dots
+            .style("fill", function (d) {
+              return color(d);
+            })
+            .text(function (d) {
+              return d;
+            })
+            .attr("text-anchor", "left")
+            .style("alignment-baseline", "middle");
+          console.log(data[0].DateApproved);
+        });
       }
     </script>
   </body>

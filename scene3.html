@@ -16,13 +16,19 @@
       text-align: center;
       color: #698db3;
     }
+    #summary{
+      text-align: center;
+      
+      padding-left: 32%;
+      padding-right: 32%;
+    }
     #scatters2{
       text-align: center;
     }
     #buttoncontainer {
       text-align: center;
     }
-    #svgp {
+    #main-chart {
       text-align: center;
     }
     p {
@@ -80,9 +86,23 @@
 
   </style>
   <body onload="init()">
-    <h1>2020 Hawaii Paycheck Protection Program (PPP) Loan Amount Trend</h1>
+    <h1>2020 Hawaii Paycheck Protection Program (PPP) Lenders Trend</h1>
     <h2 id="h2-sub">Scene 3: Top 10 Lenders v.s. Loan Amount Across Time</h2>
-
+    <div id="summary">
+    <p id="intro-p">
+      Within the top 20% Loan Amount bracket across time, most loan amount are
+      approved by Central Pacific Bank, First Hawaiian Bank and American
+      Savings. Most loan amount approved by Hawaiian National Bank are within
+      the bottom 50% bracket across time.
+    </p>
+    <p>
+      Users are encourages to explore the lenders trend by selecting parameters 
+      for Y-axis, such as approved Loan Amount, NAICS Code, Jobs Reported, and 
+      Zip Code, and also multi-filtering the lenders they are interested in. 
+      Besides, this chart provides tooltips showing relevant data when hovering 
+      over a datapoint. 
+    </p>
+    </div>
     
       <form action="" id="two-drop-submit">
         <p>Select one or more Lenders
@@ -143,9 +163,9 @@
       </form>
 
       <!-- <p id="selected-dropdown"></p> -->
-      <div id="svgp">
+      <div id="main-chart">
       <div id="scatters2"></div>
-    </div>
+      </div>
     </div>
     <div id="buttoncontainer">
       <form action="/index.html">
@@ -381,6 +401,7 @@
         //update chart by two dropdown values
         d3.select("#two-drop-submit").on("submit", function () {
           d3.event.preventDefault();
+          document.getElementById("intro-p").innerHTML = "";
           // console.log(data[0].DateApproved);
           var y_value = document.getElementById("y-axis-dropdown").value;
           console.log(y_value);
