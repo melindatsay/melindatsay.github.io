@@ -67,15 +67,17 @@
 }
 
 #checkboxes label:hover {
-  background-color: #1e90ff;
+  background-color: #adc1d6;
 }
 #tooltip {
-    width: 170px;
-    height: 100px;
+    width: 205px;
+    height: 120px;
     background-color: white;
-    border: 1px solid #969696;
+    border: 1px solid #698db3;
     position: absolute;
 }
+
+
   </style>
   <body onload="init()">
     <h1>2020 Hawaii Paycheck Protection Program (PPP) Loan Amount Trend</h1>
@@ -185,6 +187,8 @@
         topNdata.forEach(function (part, index) {
           topNdata[index].DateApproved = parseDate(part.DateApproved);
           topNdata[index].LoanAmount = parseFloat(part.LoanAmount);
+          topNdata[index].NAICSCode_2 = parseInt(part.NAICSCode_2);
+          topNdata[index].JobsReported = parseInt(part.JobsReported);
         });
 
         topNdata.sort(function (a, b) {
@@ -257,7 +261,7 @@
 
 
         //add tooltip
-        d3.select('body').append('div').attr('id', 'tooltip').attr('style', 'position: absolute; opacity: 0;');
+        var tooltip = d3.select('body').append('div').attr('id', 'tooltip').attr('style', 'position: absolute; opacity: 0;');
         // Draw the dots
         svg
           .append("g")
@@ -277,7 +281,13 @@
             return color(d.Lender);
           })
           .on('mouseover', function(d) {
-           d3.select('#tooltip').transition().duration(200).style('opacity', 1).text("Loan Amount" + d.LoanAmount)
+          //  d3.select('#tooltip').transition().duration(200).style('opacity', 1).text(d.Lender +" / $" + d.LoanAmount)
+          tooltip.html("<p id='tooltip-p'>" +" -"+ d.Lender + 
+            "<br> -Loan Amount: "+d.LoanAmount+
+            "<br> -NAICS Code: "+d.NAICSCode_2+
+            "<br> -Jobs Reported: "+d.JobsReported+
+            "<br> -Zip Code: "+d.Zip
+            ).transition().duration(200).style('opacity', 1)
           })
           .on('mouseout', function() {
           d3.select('#tooltip').style('opacity', 0)
@@ -556,7 +566,22 @@
             .attr("r", 4)
             .style("fill", function (d) {
               return color(d.Lender);
-            });
+            })          
+            .on('mouseover', function(d) {
+          //  d3.select('#tooltip').transition().duration(200).style('opacity', 1).text(d.Lender +" / $" + d.LoanAmount)
+          tooltip.html("<p id='tooltip-p'>" +" -"+ d.Lender + 
+            "<br> -Loan Amount: "+d.LoanAmount+
+            "<br> -NAICS Code: "+d.NAICSCode_2+
+            "<br> -Jobs Reported: "+d.JobsReported+
+            "<br> -Zip Code: "+d.Zip
+            ).transition().duration(200).style('opacity', 1)
+          })
+          .on('mouseout', function() {
+          d3.select('#tooltip').style('opacity', 0)
+          })
+          .on('mousemove', function() {
+          d3.select('#tooltip').style('left', (d3.event.pageX+10) + 'px').style('top', (d3.event.pageY+10) + 'px')
+          })
 
           // Legend:Add one dot in the legend for each name.
           svg
