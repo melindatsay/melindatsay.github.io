@@ -11,19 +11,19 @@
     h1,
     h2,
     h3 {
-      text-align: center;
+      text-align: left;
       color: #698db3;
     }
     #buttoncontainer {
-      text-align: center;
+      text-align: left;
     }
     #svgp {
-      text-align: center;
+      text-align: left;
     }
     p {
       color: #698db3;
-      padding-left: 32%;
-      padding-right: 32%;
+      /* padding-left: 32%;
+      padding-right: 32%; */
     }
   </style>
   <body onload="init()">
@@ -32,9 +32,19 @@
 
     <div id="svgp">
       <p>
-        There are 204 Lenders in the Paycheck Protection Program. Top 10 Lenders
-        by its total approved loan amount accounted for 93.74% of total loan
-        amount of the entire program.
+        Followed by the previous result, First Hawaiian might be the top lender
+        in the program. We can explore whether First Hawaiian Bank approved the
+        largest total loan in the program by drawing a pie chart.<br /><br />
+        This pie chart shows the proportion of lenders' involvement in the
+        Paycheck Protection Program (PPP) by its total approved loan amount. Out
+        of expectation, Central Pacific Bank is the top contributor for approved
+        loan amounts in the program. <br /><br />
+        Even though the top involvement lender is not as expected, there is an
+        interesting finding in the pie chart. Although there are 204 Lenders in
+        the Paycheck Protection Program, the top 10 Lenders by its total
+        approved loan amount accounted for 93.74% of total loan amount of the
+        entire program. In other words, top ten lenders activities capture the
+        trend of the entire program.
       </p>
       <div id="pie-chart-1"></div>
     </div>
@@ -52,7 +62,7 @@
         // set the dimensions and margins of the graph
         var width = 800;
         height = 800;
-        margin = 200;
+        margin = 210;
 
         const data = await d3.csv("./ppp_data.csv");
 
@@ -169,7 +179,7 @@
           .data(topNLenders)
           .enter()
           .append("circle")
-          .attr("cx", 220)
+          .attr("cx", 200)
           .attr("cy", function (d, i) {
             return 0 + i * 25;
           }) // 100 is where the first dot appears. 25 is the distance between dots
@@ -184,7 +194,7 @@
           .data(topNLenders)
           .enter()
           .append("text")
-          .attr("x", 230)
+          .attr("x", 210)
           .attr("y", function (d, i) {
             return 0 + i * 25;
           }) // 100 is where the first dot appears. 25 is the distance between dots
@@ -204,7 +214,7 @@
           .data(topNLenderPercentage)
           .enter()
           .append("text")
-          .attr("x", 380)
+          .attr("x", 360)
           .attr("y", function (d, i) {
             return 0 + i * 25;
           }) // 100 is where the first dot appears. 25 is the distance between dots
